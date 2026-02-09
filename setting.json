@@ -1,19 +1,40 @@
 {
-  "username": "nomadpanda",
-  "bg_url": "https://img.ewhisper.cn/blog/2021/20210702162602.jpg",
+  "title": "峰の主页",
+  "description": "一个默默无闻的主页",
+  "keywords": "峰,个人主页",
+  "author": "峰",
   "avatar": "/favicon.ico",
-  "loading_img": "/img/loading.gif",
-  "blog_url": "https://www.cnblogs.com/nomadpanda",
-  "social": [
-    ["https://github.com/nomadpanda1", "fa-brands fa-github"],
-    ["mailto:863088821@qq.com", "fa-solid fa-envelope"]
-  ],
-  "weather_key": "",
-  "weather_code": "101010100",
+  "logo_text_1": "lyf",
+  "logo_text_2": "top",
+  
+  "github": "nomadpanda1",
+  "qq": "863088821",
+  "email": "863088821@qq.com",
+  "bilibili": "383218820",
+  
+  "link_1": ["https://www.cnblogs.com/nomadpanda", "fa-solid fa-blog", "博客"],
+  "link_2": ["https://tongji.baidu.com/", "fa-solid fa-cloud", "统计"],
+  "link_3": ["http://www.lyf233.cn/", "fa-solid fa-compass", "起始页"],
+  "link_4": ["#", "fa-solid fa-book-bookmark", "开发中..."],
+  "link_5": ["#", "fa-solid fa-flask", "开发中..."],
+  "link_6": ["#", "fa-solid fa-flask", "敬请期待..."],
+  
+  "Copyright_text": "峰",
+  "beian": "蜀ICP备2024098217号",
+
+  "//_comment_1": "=== 以下是修复功能必须的关键配置 ===",
+
+  "//_weather": "天气设置 (需要去和风天气申请Key)",
+  "weather_key": "2BE3DKQFYC",
+  "weather_code": "101270101", 
+  
+  "//_music": "音乐设置 (网易云歌单)",
   "music_server": "netease",
   "music_type": "playlist",
   "music_id": "7474937748",
   "music_volume": "0.3",
-  "hitokoto_api": "https://v1.hitokoto.cn",
-  "f12_mode": false
+
+  "//_wallpaper": "壁纸设置 (1:默认 2:每日一图 3:随机)",
+  "wallpaper_type": "2",
+  "wallpaper_url": "https://api.dujin.org/bing/1920.php"
 }
