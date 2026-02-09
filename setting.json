@@ -1,46 +1,19 @@
 {
-    "title": "峰の主页",
-    "description": "一个默默无闻的主页",
-    "keywords": "峰,个人主页",
-    "author": "峰",
-    "logo_img": "./img/icon/avatar.jpg",
-    "logo_text_1": "lyf",
-    "logo_text_2": "top",
-    "github": "nomadpanda1",
-    "qq": "863088821",
-    "email": "863088821@qq.com",
-    "bilibili": "383218820",
-    "facebook": "bottom_user",
-    "link_1": [
-        "https://www.cnblogs.com/nomadpanda",
-        "fa-solid fa-blog",
-        "博客"
-    ],
-    "link_2": [
-        "https://tongji.baidu.com/",
-        "fa-solid fa-cloud",
-        "统计"
-    ],
-    "link_3": [
-        "http://www.lyf233.cn/",
-        "fa-solid fa-compass",
-        "起始页"
-    ],
-    "link_4": [
-        "http://www.lyf233.cn/",
-        "fa-solid fa-book-bookmark",
-        "开发中..."
-    ],
-    "link_5": [
-        "http://www.lyf233.cn/",
-        "fa-solid fa-flask",
-        "开发中..."
-    ],
-    "link_6": [
-        "http://www.lyf233.cn/",
-        "fa-solid fa-flask",
-        "敬请期待..."
-    ],
-    "Copyright_text": "峰",
-    "beian": "蜀ICP备2024098217号"
+  "username": "nomadpanda",
+  "bg_url": "https://img.ewhisper.cn/blog/2021/20210702162602.jpg",
+  "avatar": "/favicon.ico",
+  "loading_img": "/img/loading.gif",
+  "blog_url": "https://www.cnblogs.com/nomadpanda",
+  "social": [
+    ["https://github.com/nomadpanda1", "fa-brands fa-github"],
+    ["mailto:863088821@qq.com", "fa-solid fa-envelope"]
+  ],
+  "weather_key": "",
+  "weather_code": "101010100",
+  "music_server": "netease",
+  "music_type": "playlist",
+  "music_id": "7474937748",
+  "music_volume": "0.3",
+  "hitokoto_api": "https://v1.hitokoto.cn",
+  "f12_mode": false
 }
