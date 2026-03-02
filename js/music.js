@@ -1,20 +1,11 @@
-/*
-音乐信息
-
-感谢 @武恩赐 提供的 MetingAPI
-https://api.wuenci.com/meting/api/
-
-作者: imsyy
-主页：https://www.imsyy.top/
-GitHub：https://github.com/imsyy/home
-版权所有，请勿删除
-*/
-let server = "tencent"; //netease: 网易云音乐; tencent: QQ音乐; kugou: 酷狗音乐; xiami: 虾米; kuwo: 酷我
+/* 自定义配置 */
+let server = "netease"; //netease: 网易云音乐; tencent: QQ音乐; kugou: 酷狗音乐; xiami: 虾米; kuwo: 酷我
 let type = "playlist"; //song: 单曲; playlist: 歌单; album: 唱片
-let id = "960998364"; //封面 ID / 单曲 ID / 歌单 ID
+let id = "3778678"; // 🔴 默认填入网易云热歌榜 ID，保证能正常加载。以后你可以换成你自己的网易云歌单 ID
 
 $.ajax({
-    url: "https://api.wuenci.com/meting/api/?type=playlist&id=2619366284",
+    // 🔴 修复：替换为目前最稳定的 injahow 接口，并正确拼接上面的变量
+    url: "https://api.injahow.cn/meting/?server=" + server + "&type=" + type + "&id=" + id,
     type: "GET",
     dataType: "JSON",
     success: function (data) {
@@ -49,13 +40,6 @@ $.ajax({
                 $('.power').css("cssText", "display:none");
                 $('#lrc').css("cssText", "display:block !important");
             };
-            // Notification.requestPermission().then(res => {
-            //     console.log(res)
-            // });
-            // new Notification('音乐通知', {
-            //     body: '正在播放：' + music,
-            //     tag: 1
-            // });
         });
 
         ap.on('pause', function () {
@@ -145,7 +129,7 @@ $.ajax({
                 timeout: 8000,
                 icon: "fa-solid fa-circle-exclamation",
                 displayMode: 'replace',
-                message: '音乐播放器加载失败'
+                message: '音乐播放器加载失败，请检查网络或接口是否可用'
             });
         }, 3800);
     }
