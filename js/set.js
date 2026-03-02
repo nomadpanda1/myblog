@@ -1,14 +1,7 @@
-/*
-作者: imsyy
-主页：https://www.imsyy.top/
-GitHub：https://github.com/imsyy/home
-版权所有，请勿删除
-*/
-
 /* 自定义配置 */
 /* 尚未完善 */
 $(function () {
-    let url = "../setting.json"
+    let url = "./setting.json" // 🔴 修复1：修正了配置文件的路径
     $.getJSON(
         url,
         function (data) {
@@ -60,7 +53,8 @@ $(function () {
 // 背景图片 Cookies 
 function setBgImg(bg_img) {
     if (bg_img) {
-        Cookies.set('bg_img', bg_img, {
+        // 🔴 修复2：强制转化为标准 JSON 字符串，防止存入坏数据
+        Cookies.set('bg_img', JSON.stringify(bg_img), {
             expires: 36500
         });
         return true;
@@ -71,8 +65,15 @@ function setBgImg(bg_img) {
 // 获取背景图片 Cookies
 function getBgImg() {
     let bg_img_local = Cookies.get('bg_img');
-    if (bg_img_local && bg_img_local !== "{}") {
-        return JSON.parse(bg_img_local);
+    // 🔴 修复3：拦截错误数据 "[object Object]" 并增加错误保护罩
+    if (bg_img_local && bg_img_local !== "{}" && bg_img_local !== "[object Object]") {
+        try {
+            return JSON.parse(bg_img_local);
+        } catch (error) {
+            console.log("拦截到旧版损坏的Cookie，已重置。");
+            setBgImg(bg_img_preinstall);
+            return bg_img_preinstall;
+        }
     } else {
         setBgImg(bg_img_preinstall);
         return bg_img_preinstall;
