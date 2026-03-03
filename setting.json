@@ -3,7 +3,7 @@
     "description": "一个默默无闻的主页",
     "keywords": "峰,个人主页",
     "author": "峰",
-    "logo_img": "/favicon.ico",
+    "logo_img": "./img/avatar.jpg",
     "logo_text_1": "lyf",
     "logo_text_2": "top",
     "github": "nomadpanda1",
