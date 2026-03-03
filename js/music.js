@@ -1,10 +1,10 @@
 /* 自定义配置 */
 let server = "netease"; //netease: 网易云音乐; tencent: QQ音乐; kugou: 酷狗音乐; xiami: 虾米; kuwo: 酷我
 let type = "playlist"; //song: 单曲; playlist: 歌单; album: 唱片
-let id = "3778678"; // 🔴 默认填入网易云热歌榜 ID，保证能正常加载。以后你可以换成你自己的网易云歌单 ID
+let id = "52804225"; // 🔴 已经为你换成了拥有80万播放量的【东方Project】精选歌单 ID
 
 $.ajax({
-    // 🔴 修复：替换为目前最稳定的 injahow 接口，并正确拼接上面的变量
+    // 使用稳定的 injahow 接口
     url: "https://api.injahow.cn/meting/?server=" + server + "&type=" + type + "&id=" + id,
     type: "GET",
     dataType: "JSON",
@@ -18,6 +18,7 @@ $.ajax({
             mutex: true,
             lrcType: 3,
             audio: data,
+            autoplay: true, // 🔴 关键修改：开启打开网页自动播放
         });
 
         /* 底栏歌词 */
