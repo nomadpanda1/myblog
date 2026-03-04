@@ -33,9 +33,9 @@
     ],
     "link_5": [
     "http://lab.lyf233.cn/",
-    "fa-solid fa-magnet",
-    "3D电磁仿真"
-   ],
+    "fa-solid fa-flask-vial", 
+    "虚拟实验室"
+    ],
     "link_6": [
         "http://www.lyf233.cn/",
         "fa-solid fa-flask",
