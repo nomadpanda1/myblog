@@ -17,19 +17,19 @@
     "独立博客"
     ],
     "link_2": [
-        "https://tongji.baidu.com/",
-        "fa-solid fa-cloud",
-        "统计"
+        "https://sisyphus-pixel-game.htklyf123.workers.dev/",
+        "fa-solid fa-gamepad",
+        "小游戏"
     ],
     "link_3": [
-        "http://www.lyf233.cn/",
-        "fa-solid fa-compass",
-        "起始页"
+        "https://lyf-resume.htklyf123.workers.dev/",
+        "fa-solid fa-address-card",
+        "简历"
     ],
     "link_4": [
-        "http://www.lyf233.cn/",
-        "fa-solid fa-book-bookmark",
-        "开发中..."
+        "https://iot-dashboard.htklyf123.workers.dev/",
+        "fa-solid fa-atom",
+        "物联网仪表盘"
     ],
     "link_5": [
     "http://lab.lyf233.cn/",
@@ -37,9 +37,9 @@
     "虚拟实验室"
     ],
     "link_6": [
-        "http://www.lyf233.cn/",
-        "fa-solid fa-flask",
-        "敬请期待..."
+        "https://ai-terminal.htklyf123.workers.dev/",
+        "fa-solid fa-robot",
+        "AI终端"
     ],
     "Copyright_text": "峰",
     "beian": "蜀ICP备2024098217号",

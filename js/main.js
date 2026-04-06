@@ -1,9 +1,4 @@
-/*
-作者: imsyy
-主页：https://www.imsyy.top/
-GitHub：https://github.com/imsyy/home
-版权所有，请勿删除
-*/
+
 
 //弹窗样式
 iziToast.settings({
