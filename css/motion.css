@@ -4,6 +4,13 @@
     --scene-bg-y: 0px;
     --scene-fg-x: 0px;
     --scene-fg-y: 0px;
+    --ambient-energy: 0;
+    --ambient-brightness: 1;
+    --ambient-saturation: 1;
+    --ambient-contrast: 1;
+    --phase-brightness: 1;
+    --phase-saturation: 1;
+    --phase-contrast: 1;
 }
 
 #home-particles {
@@ -13,9 +20,44 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    opacity: .82;
+    opacity: calc(.68 + var(--ambient-energy) * .25);
     mix-blend-mode: screen;
     filter: saturate(1.2) contrast(1.08);
+}
+
+body #bg {
+    filter: brightness(calc(var(--ambient-brightness) * var(--phase-brightness))) saturate(calc(var(--ambient-saturation) * var(--phase-saturation))) contrast(calc(var(--ambient-contrast) * var(--phase-contrast))) !important;
+}
+
+body[data-ambient="rain"],
+body[data-ambient="storm"] {
+    --ambient-brightness: .78;
+    --ambient-saturation: .78;
+    --ambient-contrast: 1.08;
+}
+
+body[data-ambient="fog"] {
+    --ambient-brightness: .9;
+    --ambient-saturation: .68;
+    --ambient-contrast: .92;
+}
+
+body[data-ambient="snow"] {
+    --ambient-brightness: 1.03;
+    --ambient-saturation: .72;
+    --ambient-contrast: .96;
+}
+
+body[data-time-phase="night"] {
+    --phase-brightness: .72;
+    --phase-saturation: .88;
+    --phase-contrast: 1.08;
+}
+
+body[data-time-phase="dusk"] {
+    --phase-brightness: .86;
+    --phase-saturation: .94;
+    --phase-contrast: 1.04;
 }
 
 body.motion-enabled section {

@@ -21,8 +21,8 @@
     <link rel="stylesheet" type="text/css" href="./css/mobile.css?v=20260816-4">
     <link rel="stylesheet" type="text/css" href="./css/loading.css?v=20260815-12">
     <link rel="stylesheet" type="text/css" href="./css/animation.css?v=20260815-12">
-    <link rel="stylesheet" type="text/css" href="./css/motion.css?v=20260815-15">
-    <link rel="stylesheet" type="text/css" href="./css/knowledge-map.css?v=20260816-1">
+    <link rel="stylesheet" type="text/css" href="./css/motion.css?v=20260816-18">
+    <link rel="stylesheet" type="text/css" href="./css/knowledge-map.css?v=20260816-18">
     <link rel="icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
@@ -410,7 +410,7 @@
             <div class="command-dialog" role="dialog" aria-modal="true" aria-label="快捷导航">
                 <div class="command-search">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="search" id="command-input" placeholder="搜索全部站点、文章与项目" autocomplete="off">
+                    <input type="search" id="command-input" placeholder="搜索站点、文章、项目或操作" autocomplete="off">
                     <button type="button" id="command-close" aria-label="关闭快捷导航" title="关闭">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -429,7 +429,7 @@
             </header>
             <div class="knowledge-map-stage">
                 <div class="knowledge-map-canvas-wrap"><canvas id="knowledge-map-canvas" tabindex="0" aria-label="可交互知识关系图"></canvas><div class="knowledge-map-loading" id="knowledge-map-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>正在构建语义关系</span></div><div class="knowledge-map-legend"><span><i class="map-dot map-dot-article"></i>文章</span><span><i class="map-dot map-dot-project"></i>项目</span><span><i class="map-dot map-dot-topic"></i>主题</span><span><i class="map-dot map-dot-profile"></i>资料</span></div></div>
-                <aside class="knowledge-map-detail" id="knowledge-map-detail" aria-live="polite"><div class="knowledge-map-detail-kicker" id="knowledge-map-detail-kind">KNOWLEDGE NODE</div><h3 id="knowledge-map-detail-title">等待节点</h3><p id="knowledge-map-detail-summary">选择一个节点查看摘要和关联内容。</p><div class="knowledge-map-tags" id="knowledge-map-detail-tags"></div><div class="knowledge-map-related"><div class="knowledge-map-related-heading"><span>关联节点</span><small id="knowledge-map-related-count">0</small></div><div id="knowledge-map-related-list"></div></div><a class="knowledge-map-open-link" id="knowledge-map-detail-link" href="#" target="_blank" rel="noopener noreferrer" hidden>打开来源 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></aside>
+                <aside class="knowledge-map-detail" id="knowledge-map-detail" aria-live="polite"><div class="knowledge-map-detail-kicker" id="knowledge-map-detail-kind">KNOWLEDGE NODE</div><h3 id="knowledge-map-detail-title">等待节点</h3><p id="knowledge-map-detail-summary">选择一个节点查看摘要和关联内容。</p><div class="knowledge-map-tags" id="knowledge-map-detail-tags"></div><div class="knowledge-map-explore-actions"><button type="button" id="knowledge-map-path-mode" aria-pressed="false"><i class="fa-solid fa-route"></i><span>路径探索</span></button><button type="button" id="knowledge-map-favorite" aria-pressed="false"><i class="fa-regular fa-bookmark"></i><span>收藏节点</span></button></div><div class="knowledge-map-path" id="knowledge-map-path" hidden><span>探索路径</span><strong id="knowledge-map-path-text"></strong></div><div class="knowledge-map-related"><div class="knowledge-map-related-heading"><span>关联节点</span><small id="knowledge-map-related-count">0</small></div><div id="knowledge-map-related-list"></div></div><a class="knowledge-map-open-link" id="knowledge-map-detail-link" href="#" target="_blank" rel="noopener noreferrer" hidden>打开来源 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></aside>
             </div>
         </section>
 
@@ -555,13 +555,13 @@
     <noscript>
         <div class="noscript fixed-top">请开启 JavaScript</div>
     </noscript>
-    <script type="text/javascript" src="./js/main.js?v=20260816-17"></script>
+    <script type="text/javascript" src="./js/main.js?v=20260816-18"></script>
     <script type="text/javascript" src="./js/set.js?v=20260816-6"></script>
     <script type="text/javascript" src="./js/time.js?v=20260815-15"></script>
-    <script type="text/javascript" src="./js/dashboard.js?v=20260816-17"></script>
+    <script type="text/javascript" src="./js/dashboard.js?v=20260816-18"></script>
     <script src="https://fastly.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="./js/knowledge-map.js?v=20260816-1"></script>
-    <script type="text/javascript" src="./js/motion.js?v=20260815-15"></script>
+    <script type="text/javascript" src="./js/knowledge-map.js?v=20260816-18"></script>
+    <script type="text/javascript" src="./js/motion.js?v=20260816-18"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
     <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.min.js">

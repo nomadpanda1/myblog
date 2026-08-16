@@ -15,6 +15,11 @@
         transform: d3.zoomIdentity,
         selected: null,
         hovered: null,
+        pathMode: false,
+        pathAnchor: null,
+        pathNodes: new Set(),
+        pathEdges: new Set(),
+        favorites: new Set(),
         filter: 'all',
         query: '',
         width: 0,
@@ -32,6 +37,12 @@
         tool: '#83d9ff',
         game: '#b9c5ff',
     };
+
+    try {
+        state.favorites = new Set(JSON.parse(localStorage.getItem('home_knowledge_favorites') || '[]'));
+    } catch (error) {
+        localStorage.removeItem('home_knowledge_favorites');
+    }
 
     function text(id, value) {
         const node = document.getElementById(id);
@@ -69,6 +80,48 @@
         return node.kind === 'topic' ? 7 + node.weight * 2.2 : 4.2 + node.weight * 2.4;
     }
 
+    function edgeKey(source, target) {
+        return [source, target].sort().join('::');
+    }
+
+    function shortestPath(startId, endId) {
+        if (!startId || !endId) return [];
+        const adjacency = new Map(state.nodes.map(node => [node.id, []]));
+        state.links.forEach(link => {
+            const source = typeof link.source === 'object' ? link.source.id : link.source;
+            const target = typeof link.target === 'object' ? link.target.id : link.target;
+            if (adjacency.has(source) && adjacency.has(target)) {
+                adjacency.get(source).push(target);
+                adjacency.get(target).push(source);
+            }
+        });
+        const queue = [startId];
+        const previous = new Map([[startId, null]]);
+        while (queue.length) {
+            const current = queue.shift();
+            if (current === endId) break;
+            adjacency.get(current)?.forEach(next => {
+                if (!previous.has(next)) {
+                    previous.set(next, current);
+                    queue.push(next);
+                }
+            });
+        }
+        if (!previous.has(endId)) return [];
+        const path = [];
+        for (let current = endId; current; current = previous.get(current)) path.unshift(current);
+        return path;
+    }
+
+    function paintPath(path) {
+        state.pathNodes = new Set(path);
+        state.pathEdges = new Set(path.slice(1).map((id, index) => edgeKey(path[index], id)));
+        const panel = document.getElementById('knowledge-map-path');
+        const labels = path.map(id => state.nodes.find(node => node.id === id)?.label).filter(Boolean);
+        panel.hidden = !labels.length;
+        text('knowledge-map-path-text', labels.length > 1 ? labels.join(' → ') : labels[0] ? `起点：${labels[0]}，继续选择目标节点` : '');
+    }
+
     function visibleRelated(node) {
         if (!node) return [];
         const relatedIds = new Map();
@@ -103,11 +156,12 @@
             const sourceMatch = isMatch(source);
             const targetMatch = isMatch(target);
             const connected = state.selected && (source.id === state.selected.id || target.id === state.selected.id);
+            const onPath = state.pathEdges.has(edgeKey(source.id, target.id));
             context.beginPath();
             context.moveTo(source.x, source.y);
             context.lineTo(target.x, target.y);
-            context.strokeStyle = connected ? 'rgba(180,255,235,.72)' : sourceMatch && targetMatch ? link.kind === 'topic' ? 'rgba(159,235,220,.25)' : 'rgba(180,210,235,.18)' : 'rgba(159,235,220,.035)';
-            context.lineWidth = connected ? 1.8 / state.transform.k : (link.kind === 'topic' ? 1.1 : .75) / state.transform.k;
+            context.strokeStyle = onPath ? 'rgba(255,210,122,.95)' : connected ? 'rgba(180,255,235,.72)' : sourceMatch && targetMatch ? link.kind === 'topic' ? 'rgba(159,235,220,.25)' : 'rgba(180,210,235,.18)' : 'rgba(159,235,220,.035)';
+            context.lineWidth = (onPath ? 2.7 : connected ? 1.8 : link.kind === 'topic' ? 1.1 : .75) / state.transform.k;
             context.stroke();
         });
 
@@ -116,16 +170,17 @@
             const selected = state.selected?.id === node.id;
             const hovered = state.hovered?.id === node.id;
             const connected = neighbors.has(node.id);
+            const onPath = state.pathNodes.has(node.id);
             const radius = nodeRadius(node) / (selected || hovered ? .88 : 1);
             context.beginPath();
             context.arc(node.x, node.y, radius, 0, Math.PI * 2);
             context.globalAlpha = match ? 1 : .1;
-            context.fillStyle = nodeColor(node);
+            context.fillStyle = onPath ? '#ffd27a' : nodeColor(node);
             context.shadowBlur = selected || hovered ? 20 : node.kind === 'topic' ? 12 : 7;
-            context.shadowColor = nodeColor(node);
+            context.shadowColor = onPath ? '#ffd27a' : nodeColor(node);
             context.fill();
             context.shadowBlur = 0;
-            if (selected || hovered || connected) {
+            if (selected || hovered || connected || onPath) {
                 context.beginPath();
                 context.arc(node.x, node.y, radius + 4 / state.transform.k, 0, Math.PI * 2);
                 context.strokeStyle = selected ? 'rgba(255,255,255,.9)' : 'rgba(210,255,243,.4)';
@@ -169,15 +224,37 @@
             : '<span class="knowledge-map-no-related">暂无直接关联</span>';
     }
 
-    function selectNode(node) {
+    function renderExploreState(node) {
+        const pathButton = document.getElementById('knowledge-map-path-mode');
+        pathButton.classList.toggle('is-active', state.pathMode);
+        pathButton.setAttribute('aria-pressed', String(state.pathMode));
+        const favoriteButton = document.getElementById('knowledge-map-favorite');
+        const favorite = Boolean(node && state.favorites.has(node.id));
+        favoriteButton.classList.toggle('is-active', favorite);
+        favoriteButton.setAttribute('aria-pressed', String(favorite));
+        favoriteButton.innerHTML = favorite
+            ? '<i class="fa-solid fa-bookmark"></i><span>已收藏</span>'
+            : '<i class="fa-regular fa-bookmark"></i><span>收藏节点</span>';
+    }
+
+    function selectNode(node, options = {}) {
         if (!node) return;
         state.selected = node;
+        if (state.pathMode && options.explore !== false) {
+            if (!state.pathAnchor) {
+                state.pathAnchor = node;
+                paintPath([node.id]);
+            } else if (state.pathAnchor.id !== node.id) {
+                paintPath(shortestPath(state.pathAnchor.id, node.id));
+            }
+        }
         text('knowledge-map-detail-kind', `${nodeGroup(node).toUpperCase()} / ${node.site || 'KNOWLEDGE'}`);
         text('knowledge-map-detail-title', node.title || node.label);
         text('knowledge-map-detail-summary', node.summary || '暂无摘要');
         const tags = document.getElementById('knowledge-map-detail-tags');
         tags.innerHTML = (node.topics || []).map(topic => `<span>${escapeHtml(topic)}</span>`).join('');
         renderRelated(node);
+        renderExploreState(node);
         const link = document.getElementById('knowledge-map-detail-link');
         if (node.url) {
             link.hidden = false;
@@ -204,7 +281,7 @@
         state.filter = filter;
         document.querySelectorAll('[data-map-filter]').forEach(button => button.classList.toggle('is-active', button.dataset.mapFilter === filter));
         const match = matchingNodes()[0];
-        if (match) selectNode(match);
+        if (match) selectNode(match, { explore: false });
         draw();
     }
 
@@ -244,7 +321,7 @@
         text('knowledge-map-node-count', state.nodes.length);
         text('knowledge-map-edge-count', data.stats?.connections ?? state.links.length);
         document.getElementById('knowledge-map-loading').classList.add('is-hidden');
-        selectNode(state.nodes.find(node => node.kind === 'topic') || state.nodes[0]);
+        selectNode(state.nodes.find(node => node.kind === 'topic') || state.nodes[0], { explore: false });
     }
 
     async function loadGraph() {
@@ -284,12 +361,26 @@
     document.getElementById('knowledge-map-reset').addEventListener('click', () => {
         if (state.zoom) d3.select(canvas).transition().duration(350).call(state.zoom.transform, d3.zoomIdentity);
     });
+    document.getElementById('knowledge-map-path-mode').addEventListener('click', () => {
+        state.pathMode = !state.pathMode;
+        state.pathAnchor = state.pathMode ? state.selected : null;
+        paintPath(state.pathAnchor ? [state.pathAnchor.id] : []);
+        renderExploreState(state.selected);
+        draw();
+    });
+    document.getElementById('knowledge-map-favorite').addEventListener('click', () => {
+        if (!state.selected) return;
+        if (state.favorites.has(state.selected.id)) state.favorites.delete(state.selected.id);
+        else state.favorites.add(state.selected.id);
+        localStorage.setItem('home_knowledge_favorites', JSON.stringify([...state.favorites]));
+        renderExploreState(state.selected);
+    });
     document.querySelectorAll('[data-map-filter]').forEach(button => button.addEventListener('click', () => setFilter(button.dataset.mapFilter)));
     document.getElementById('knowledge-map-query').addEventListener('input', event => {
         state.query = event.target.value.trim().toLowerCase();
         const match = matchingNodes()[0];
         if (match) {
-            selectNode(match);
+            selectNode(match, { explore: false });
             focusNode(match);
         } else {
             draw();

@@ -13,6 +13,14 @@
         { name: '个人简历', description: 'resume.lyf233.cn', url: 'https://resume.lyf233.cn/', icon: 'fa-solid fa-address-card', keywords: 'resume cv 简历' },
         { name: 'Hextris', description: 'hextris.lyf233.cn', url: 'https://hextris.lyf233.cn/', icon: 'fa-solid fa-gamepad', keywords: 'hextris 游戏' },
         { name: '西西弗斯', description: 'sisyphus.lyf233.cn', url: 'https://sisyphus.lyf233.cn/', icon: 'fa-solid fa-mountain', keywords: 'sisyphus 西西弗斯 游戏' },
+        { name: '顶驱 PHM', description: '状态监测、故障诊断与剩余寿命预测', url: 'https://www.phm.lyf233.cn/', icon: 'fa-solid fa-chart-line', keywords: 'phm 顶驱 预测性维护 状态监测 故障诊断 rul' },
+        { name: 'CAD 图框置换', description: 'DWG / DXF 标准图框自动处理', url: 'https://www.frame.lyf233.cn/', icon: 'fa-solid fa-drafting-compass', keywords: 'cad dwg dxf 图框 置换 工程图纸' },
+        { name: '当地天气', description: '打开天气详情与逐小时预报', url: '#weather', action: 'panel:weather', icon: 'fa-solid fa-cloud-sun', keywords: '天气 温度 降雨 空气质量 小时预报' },
+        { name: '站点状态', description: '检查所有网站与后端服务', url: '#status', action: 'panel:status', icon: 'fa-solid fa-signal', keywords: '服务 状态 健康 延迟 uptime' },
+        { name: '项目动态', description: '查看最近同步的 GitHub 提交', url: '#activity', action: 'panel:activity', icon: 'fa-solid fa-code-commit', keywords: 'github 提交 项目 动态 commit' },
+        { name: '专注计时', description: '开始或继续当前专注时段', url: '#focus', action: 'panel:focus', icon: 'fa-solid fa-bullseye', keywords: '专注 番茄钟 计时 focus' },
+        { name: '播放或暂停音乐', description: '控制主页背景音乐', url: '#music-toggle', action: 'music-toggle', icon: 'fa-solid fa-circle-play', keywords: '音乐 播放 暂停 music play pause' },
+        { name: '播放下一首', description: '切换东方曲歌单', url: '#music-next', action: 'music-next', icon: 'fa-solid fa-forward-step', keywords: '音乐 下一首 切歌 next' },
     ];
 
     const weatherDescriptions = {
@@ -47,7 +55,7 @@
                 <button type="button" class="command-result${index === activeCommandIndex ? ' is-active' : ''}" data-command-index="${index}">
                     <i class="${site.icon}"></i>
                     <span><strong>${escapeHtml(site.name)}</strong><small>${escapeHtml(site.description)}</small>${site.summary ? `<small class="command-summary">${escapeHtml(site.summary)}</small>` : ''}</span>
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <i class="fa-solid ${site.action ? 'fa-bolt' : 'fa-arrow-up-right-from-square'}"></i>
                 </button>`).join('')
             : '<div class="empty-state">没有找到相关内容</div>';
     }
@@ -105,9 +113,21 @@
     function openActiveCommand() {
         const site = commandMatches[activeCommandIndex];
         if (!site) return;
+        closePalette();
         if (site.action === 'knowledge-map') {
-            closePalette();
             window.dispatchEvent(new CustomEvent('home:knowledge-map-open'));
+            return;
+        }
+        if (site.action?.startsWith('panel:')) {
+            openPanel(site.action.split(':')[1]);
+            return;
+        }
+        if (site.action === 'music-toggle') {
+            document.getElementById('stage-play')?.click();
+            return;
+        }
+        if (site.action === 'music-next') {
+            document.getElementById('stage-next')?.click();
             return;
         }
         window.location.href = site.url;

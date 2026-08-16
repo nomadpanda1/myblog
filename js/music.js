@@ -199,6 +199,7 @@
                 });
                 const averageEnergy = bars.length ? totalEnergy / bars.length : 0;
                 document.getElementById('music-stage').style.setProperty('--music-glow', (0.05 + averageEnergy * 0.2).toFixed(3));
+                window.dispatchEvent(new CustomEvent('home:audio-energy', { detail: { energy: averageEnergy } }));
                 spectrumLastPaint = timestamp;
             }
             spectrumFrame = requestAnimationFrame(paint);
@@ -494,6 +495,7 @@
                 .html("<i class='fa-solid fa-play'></i>");
             $('#music-stage').removeClass('is-playing');
             stopSpectrum();
+            window.dispatchEvent(new CustomEvent('home:audio-energy', { detail: { energy: 0 } }));
             if ($(document).width() >= 990) {
                 $('#lrc').css('display', 'none');
                 $('.power').css('display', 'flex');

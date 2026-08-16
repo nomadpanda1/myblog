@@ -10,6 +10,7 @@
     visibility: hidden;
     pointer-events: none;
     transform: scale(1.02);
+    filter: none;
     transition: opacity .28s ease, visibility .28s ease, transform .28s ease;
 }
 
@@ -292,6 +293,58 @@ body.knowledge-map-open {
     font-size: .64rem;
 }
 
+.knowledge-map-explore-actions {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.knowledge-map-explore-actions button {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: rgb(236 247 244 / 64%);
+    border: 1px solid rgb(159 235 220 / 16%);
+    border-radius: 4px;
+    background: rgb(255 255 255 / 4%);
+    cursor: pointer;
+    font-size: .69rem;
+}
+
+.knowledge-map-explore-actions button:hover,
+.knowledge-map-explore-actions button.is-active {
+    color: #071012;
+    border-color: #63e6be;
+    background: #63e6be;
+}
+
+.knowledge-map-path {
+    margin-top: 8px;
+    padding: 10px;
+    border-left: 2px solid #63e6be;
+    background: rgb(99 230 190 / 7%);
+}
+
+.knowledge-map-path span,
+.knowledge-map-path strong {
+    display: block;
+}
+
+.knowledge-map-path span {
+    color: #63e6be;
+    font: 700 .58rem 'UnidreamLED', monospace;
+}
+
+.knowledge-map-path strong {
+    margin-top: 5px;
+    color: rgb(236 247 244 / 74%);
+    font-size: .67rem;
+    line-height: 1.55;
+}
+
 .knowledge-map-related {
     margin-top: 26px;
     border-top: 1px solid rgb(159 235 220 / 13%);
@@ -401,6 +454,8 @@ body.knowledge-map-open {
     .knowledge-map-detail h3 { margin: 6px 0 7px; font-size: 1rem; }
     .knowledge-map-detail > p { max-height: 48px; overflow: hidden; font-size: .73rem; line-height: 1.5; }
     .knowledge-map-tags { margin-top: 10px; }
+    .knowledge-map-explore-actions { margin-top: 10px; }
+    .knowledge-map-path { display: none; }
     .knowledge-map-related { display: none; }
     .knowledge-map-open-link { margin-top: 10px; min-height: 32px; }
     .knowledge-map-legend { left: 12px; bottom: 12px; gap: 9px; font-size: .61rem; }

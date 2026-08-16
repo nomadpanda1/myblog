@@ -8,6 +8,8 @@
     let currentY = 0;
     let targetX = 0;
     let targetY = 0;
+    let audioEnergy = 0;
+    let weatherMode = 'clear';
 
     body.classList.add('motion-enabled');
 
@@ -45,7 +47,9 @@
             context.clearRect(0, 0, window.innerWidth, window.innerHeight);
             context.globalCompositeOperation = 'lighter';
             frame += 1;
-            if (!reducedMotion.matches && (!comet || comet.life <= 0) && frame % 230 === 0) {
+            const energyBoost = 1 + audioEnergy * 1.8;
+            const connectionRange = 118 + audioEnergy * 34;
+            if (!reducedMotion.matches && (!comet || comet.life <= 0) && frame % Math.max(120, Math.round(230 - audioEnergy * 95)) === 0) {
                 comet = { x: -80, y: 70 + Math.random() * window.innerHeight * .42, vx: 7.2, vy: 2.1, life: 120 };
             }
             if (comet?.life > 0) {
@@ -70,20 +74,23 @@
                     particle.x += dx / distance * .34;
                     particle.y += dy / distance * .34;
                 }
-                particle.x = (particle.x + particle.vx + window.innerWidth) % window.innerWidth;
-                particle.y = (particle.y + particle.vy + window.innerHeight) % window.innerHeight;
-                context.fillStyle = index % 5 === 0 ? 'rgba(255,214,145,.96)' : 'rgba(144,255,236,.94)';
-                context.shadowBlur = 14;
-                context.shadowColor = index % 5 === 0 ? 'rgba(255,190,96,.68)' : 'rgba(99,230,190,.7)';
+                particle.x = (particle.x + particle.vx * energyBoost + window.innerWidth) % window.innerWidth;
+                particle.y = (particle.y + particle.vy * energyBoost + window.innerHeight) % window.innerHeight;
+                const rainy = weatherMode === 'rain' || weatherMode === 'storm';
+                const primary = rainy ? '132,206,255' : '144,255,236';
+                const accent = weatherMode === 'snow' ? '225,238,255' : '255,214,145';
+                context.fillStyle = index % 5 === 0 ? `rgba(${accent},.96)` : `rgba(${primary},.94)`;
+                context.shadowBlur = 12 + audioEnergy * 14;
+                context.shadowColor = index % 5 === 0 ? `rgba(${accent},.62)` : `rgba(${primary},.68)`;
                 context.beginPath();
-                context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                context.arc(particle.x, particle.y, particle.radius + audioEnergy * 1.15, 0, Math.PI * 2);
                 context.fill();
                 for (let next = index + 1; next < particles.length; next += 1) {
                     const sibling = particles[next];
                     const lineDistance = Math.hypot(particle.x - sibling.x, particle.y - sibling.y);
-                    if (lineDistance < 118) {
+                    if (lineDistance < connectionRange) {
                         context.shadowBlur = 0;
-                        context.strokeStyle = `rgba(150,240,226,${(1 - lineDistance / 118) * .46})`;
+                        context.strokeStyle = `rgba(${primary},${(1 - lineDistance / connectionRange) * (.38 + audioEnergy * .3)})`;
                         context.lineWidth = 1;
                         context.beginPath();
                         context.moveTo(particle.x, particle.y);
@@ -121,6 +128,23 @@
     }
 
     initParticles();
+
+    function updateTimePhase() {
+        const hour = new Date().getHours();
+        body.dataset.timePhase = hour >= 6 && hour < 18 ? 'day' : hour < 22 ? 'dusk' : 'night';
+    }
+
+    window.addEventListener('home:audio-energy', event => {
+        audioEnergy = Math.max(0, Math.min(1, Number(event.detail?.energy) || 0));
+        root.style.setProperty('--ambient-energy', audioEnergy.toFixed(3));
+    });
+    window.addEventListener('home:weather-changed', event => {
+        const code = Number(event.detail?.code);
+        weatherMode = code >= 95 ? 'storm' : code >= 71 && code <= 86 ? 'snow' : code >= 51 && code <= 82 ? 'rain' : code >= 45 ? 'fog' : 'clear';
+        body.dataset.ambient = weatherMode;
+    });
+    updateTimePhase();
+    setInterval(updateTimePhase, 60000);
 
     function paintScene() {
         currentX += (targetX - currentX) * 0.12;

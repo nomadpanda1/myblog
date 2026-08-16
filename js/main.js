@@ -58,7 +58,7 @@ window.addEventListener('load', function () {
 
     //延迟加载音乐播放器
     let element = document.createElement("script");
-    element.src = "./js/music.js?v=20260816-5";
+    element.src = "./js/music.js?v=20260816-18";
     document.body.appendChild(element);
 
     //中文字体缓加载-此处写入字体源文件 （暂时弃用）
@@ -256,6 +256,11 @@ async function getWeather() {
         $('#tem_text').text(`${Math.round(current.temperature_2m)}°C`);
         $('#win_text').text(getWindDirection(current.wind_direction_10m));
         $('#win_speed').text(getWindScale(current.wind_speed_10m));
+        window.dispatchEvent(new CustomEvent('home:weather-changed', { detail: {
+            code: Number(current.weather_code),
+            temperature: Number(current.temperature_2m),
+            windSpeed: Number(current.wind_speed_10m),
+        } }));
         return true;
     } catch (error) {
         console.warn('天气加载失败', error);
