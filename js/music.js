@@ -339,7 +339,7 @@
 
     async function loadConfig() {
         try {
-            const response = await fetch('./setting.json?v=20260815-12', { signal: AbortSignal.timeout(5000) });
+            const response = await fetch('./setting.json?v=20260816-5', { signal: AbortSignal.timeout(5000) });
             if (!response.ok) throw new Error(`Setting returned ${response.status}`);
             const setting = await response.json();
             return {
