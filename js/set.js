@@ -1,7 +1,7 @@
 /* 自定义配置 */
 /* 尚未完善 */
 $(function () {
-    let url = "./setting.json?v=20260816-5"
+    let url = "./setting.json?v=20260816-6"
     $.getJSON(
         url,
         function (data) {

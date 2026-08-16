@@ -620,6 +620,15 @@ span.link-name {
     transition: 0.1s;
 }
 
+.link-action {
+    width: 100%;
+    padding: 0;
+    color: inherit;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
 i.iconfont.icon-a-daohangzhiyindingwei-05,
 i.iconfont.icon-z_shangpinheji {
     font-size: 2rem;
@@ -1542,6 +1551,142 @@ footer {
     padding: 40px 10px;
     text-align: center;
     color: rgb(255 255 255 / 52%);
+}
+
+/* 专注计时 */
+.focus-heading p {
+    margin: 0 0 4px;
+    color: #63e6be;
+    font: 700 .68rem 'UnidreamLED', monospace;
+}
+
+.focus-heading h2 {
+    margin: 0;
+    font-size: 1.45rem;
+}
+
+.focus-heading > span {
+    display: block;
+    margin-top: 7px;
+    color: rgb(255 255 255 / 58%);
+    font-size: .82rem;
+    line-height: 1.6;
+}
+
+.focus-modes {
+    margin: 22px 0 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 3px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 6px;
+    background: rgb(0 0 0 / 18%);
+}
+
+.focus-modes button {
+    min-height: 38px;
+    color: rgb(255 255 255 / 58%);
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+}
+
+.focus-modes button.is-active {
+    color: #fff;
+    background: rgb(255 255 255 / 12%);
+}
+
+.focus-clock {
+    --focus-progress: 0%;
+    position: relative;
+    width: min(258px, 74vw);
+    aspect-ratio: 1;
+    margin: 6px auto 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: conic-gradient(#63e6be var(--focus-progress), rgb(255 255 255 / 10%) 0);
+    box-shadow: 0 0 38px rgb(99 230 190 / 10%);
+}
+
+.focus-clock::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: rgb(20 23 27);
+    border: 1px solid rgb(255 255 255 / 9%);
+}
+
+.focus-clock-content {
+    position: relative;
+    display: grid;
+    justify-items: center;
+}
+
+.focus-clock-content span,
+.focus-clock-content small {
+    color: rgb(255 255 255 / 56%);
+}
+
+.focus-clock-content span {
+    font-size: .76rem;
+}
+
+.focus-clock-content strong {
+    margin: 10px 0 8px;
+    font: 700 3.7rem/1 'UnidreamLED', monospace;
+}
+
+.focus-clock-content small {
+    font-size: .72rem;
+}
+
+.focus-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.focus-actions button {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: rgb(255 255 255 / 72%);
+    border: 1px solid rgb(255 255 255 / 14%);
+    border-radius: 5px;
+    background: rgb(255 255 255 / 6%);
+}
+
+.focus-actions button:hover {
+    color: #fff;
+    border-color: rgb(99 230 190 / 50%);
+}
+
+.focus-actions .focus-primary {
+    color: #07120f;
+    border-color: #63e6be;
+    background: #63e6be;
+    font-weight: 700;
+}
+
+.focus-summary {
+    margin-top: 22px;
+    padding: 15px 16px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: baseline;
+    gap: 7px;
+    border-top: 1px solid rgb(255 255 255 / 12%);
+    color: rgb(255 255 255 / 58%);
+    font-size: .76rem;
+}
+
+.focus-summary strong {
+    color: #63e6be;
+    font: 700 1.5rem 'UnidreamLED', monospace;
 }
 
 /* 账号与跨设备同步 */

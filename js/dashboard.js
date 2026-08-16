@@ -7,9 +7,8 @@
     const sites = [
         { name: '主页', description: 'www.lyf233.cn', url: 'https://www.lyf233.cn/', icon: 'fa-solid fa-house', keywords: 'home 主页' },
         { name: '独立博客', description: 'blog.lyf233.cn', url: 'https://blog.lyf233.cn/', icon: 'fa-solid fa-blog', keywords: 'blog 文章 博客' },
-        { name: '虚拟实验室', description: 'lab.lyf233.cn', url: 'https://lab.lyf233.cn/', icon: 'fa-solid fa-flask-vial', keywords: 'lab 实验 仿真' },
+        { name: '项目工坊', description: 'lab.lyf233.cn · 仿真、物联网与项目档案', url: 'https://lab.lyf233.cn/', icon: 'fa-solid fa-flask-vial', keywords: 'lab 实验 仿真 iot 物联网 仪表盘 项目' },
         { name: '知识检索', description: 'ai.lyf233.cn · 跨站全文搜索', url: 'https://ai.lyf233.cn/', icon: 'fa-solid fa-magnifying-glass-chart', keywords: 'search rag 向量 全文 知识库' },
-        { name: '物联网仪表盘', description: 'iot.lyf233.cn', url: 'https://iot.lyf233.cn/', icon: 'fa-solid fa-atom', keywords: 'iot 物联网 仪表盘' },
         { name: '个人简历', description: 'resume.lyf233.cn', url: 'https://resume.lyf233.cn/', icon: 'fa-solid fa-address-card', keywords: 'resume cv 简历' },
         { name: 'Hextris', description: 'hextris.lyf233.cn', url: 'https://hextris.lyf233.cn/', icon: 'fa-solid fa-gamepad', keywords: 'hextris 游戏' },
         { name: '西西弗斯', description: 'sisyphus.lyf233.cn', url: 'https://sisyphus.lyf233.cn/', icon: 'fa-solid fa-mountain', keywords: 'sisyphus 西西弗斯 游戏' },
@@ -165,6 +164,7 @@
         if (view === 'weather') loadWeatherDetails();
         if (view === 'status') loadStatus();
         if (view === 'activity') loadActivity();
+        if (view === 'focus') renderFocusTimer();
         if (view === 'music') renderMusicLibrary();
         if (view === 'account') loadAccount();
     }
@@ -183,6 +183,121 @@
         button.addEventListener('click', () => openPanel(button.dataset.panelView))
     );
     document.getElementById('upWeather').addEventListener('click', () => openPanel('weather'));
+
+    const focusStorageKey = 'home_focus_timer_v1';
+    const focusDurations = { focus: 25 * 60, break: 5 * 60 };
+    const focusToday = () => new Date().toLocaleDateString('en-CA');
+    let focusState = {
+        mode: 'focus',
+        remaining: focusDurations.focus,
+        running: false,
+        endsAt: 0,
+        completed: 0,
+        date: focusToday(),
+    };
+
+    try {
+        const stored = JSON.parse(localStorage.getItem(focusStorageKey) || 'null');
+        if (stored && ['focus', 'break'].includes(stored.mode)) {
+            focusState = {
+                mode: stored.mode,
+                remaining: Math.max(0, Math.min(focusDurations[stored.mode], Number(stored.remaining) || focusDurations[stored.mode])),
+                running: Boolean(stored.running),
+                endsAt: Number(stored.endsAt) || 0,
+                completed: stored.date === focusToday() ? Math.max(0, Number(stored.completed) || 0) : 0,
+                date: focusToday(),
+            };
+        }
+    } catch (error) {
+        localStorage.removeItem(focusStorageKey);
+    }
+
+    function saveFocusTimer() {
+        const today = focusToday();
+        if (focusState.date !== today) focusState.completed = 0;
+        focusState.date = today;
+        localStorage.setItem(focusStorageKey, JSON.stringify(focusState));
+    }
+
+    function setFocusMode(mode) {
+        focusState.mode = mode;
+        focusState.remaining = focusDurations[mode];
+        focusState.running = false;
+        focusState.endsAt = 0;
+        saveFocusTimer();
+        renderFocusTimer();
+    }
+
+    function finishFocusPeriod() {
+        const finishedFocus = focusState.mode === 'focus';
+        if (finishedFocus) focusState.completed += 1;
+        focusState.mode = finishedFocus ? 'break' : 'focus';
+        focusState.remaining = focusDurations[focusState.mode];
+        focusState.running = false;
+        focusState.endsAt = 0;
+        saveFocusTimer();
+        if (window.iziToast) {
+            iziToast.show({
+                timeout: 3500,
+                icon: finishedFocus ? 'fa-solid fa-mug-hot' : 'fa-solid fa-bullseye',
+                message: finishedFocus ? '专注完成，休息五分钟' : '休息结束，可以开始下一轮',
+            });
+        }
+    }
+
+    function currentFocusRemaining() {
+        if (!focusState.running) return focusState.remaining;
+        return Math.max(0, Math.ceil((focusState.endsAt - Date.now()) / 1000));
+    }
+
+    function renderFocusTimer() {
+        const remaining = currentFocusRemaining();
+        if (focusState.running && remaining <= 0) {
+            finishFocusPeriod();
+            return renderFocusTimer();
+        }
+        focusState.remaining = remaining;
+        const duration = focusDurations[focusState.mode];
+        const progress = Math.max(0, Math.min(100, (1 - remaining / duration) * 100));
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        document.getElementById('focus-time').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        document.getElementById('focus-mode-label').textContent = focusState.mode === 'focus' ? '专注时段' : '短暂休息';
+        document.getElementById('focus-status').textContent = focusState.running ? '计时进行中' : remaining === duration ? '准备开始' : '已暂停';
+        document.getElementById('focus-completed').textContent = String(focusState.completed);
+        document.getElementById('focus-clock').style.setProperty('--focus-progress', `${progress}%`);
+        document.querySelectorAll('[data-focus-mode]').forEach(button => {
+            const active = button.dataset.focusMode === focusState.mode;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+        const toggle = document.getElementById('focus-toggle');
+        toggle.innerHTML = focusState.running
+            ? '<i class="fa-solid fa-pause"></i><span>暂停</span>'
+            : '<i class="fa-solid fa-play"></i><span>开始</span>';
+    }
+
+    document.querySelectorAll('[data-focus-mode]').forEach(button =>
+        button.addEventListener('click', () => setFocusMode(button.dataset.focusMode))
+    );
+    document.getElementById('focus-toggle').addEventListener('click', () => {
+        if (focusState.running) {
+            focusState.remaining = currentFocusRemaining();
+            focusState.running = false;
+            focusState.endsAt = 0;
+        } else {
+            focusState.running = true;
+            focusState.endsAt = Date.now() + focusState.remaining * 1000;
+        }
+        saveFocusTimer();
+        renderFocusTimer();
+    });
+    document.getElementById('focus-reset').addEventListener('click', () => setFocusMode(focusState.mode));
+    document.getElementById('focus-skip').addEventListener('click', () => setFocusMode(focusState.mode === 'focus' ? 'break' : 'focus'));
+    renderFocusTimer();
+    setInterval(() => {
+        if (focusState.running) renderFocusTimer();
+    }, 500);
 
     async function fetchJson(url, options = {}) {
         const response = await fetch(url, {

@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://s1.hdslb.com/bfs/static/jinkela/long/font/regular.css" />
     <link rel="stylesheet" type="text/css"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="./css/style.css?v=20260816-4">
+    <link rel="stylesheet" type="text/css" href="./css/style.css?v=20260816-5">
     <link rel="stylesheet" type="text/css" href="./css/mobile.css?v=20260816-4">
     <link rel="stylesheet" type="text/css" href="./css/loading.css?v=20260815-12">
     <link rel="stylesheet" type="text/css" href="./css/animation.css?v=20260815-12">
@@ -208,12 +208,12 @@
                                 </div>
                                 <div class="row" style="margin-top: 1.5rem;">
                                     <div class="col">
-                                        <a id="link-url-4" href="https://iot.lyf233.cn/" target="_blank" rel="noopener noreferrer">
+                                        <button id="link-url-4" class="link-action" type="button" data-panel-view="focus" aria-label="打开专注计时">
                                             <div class="link-card cards">
-                                                <i id="link-icon-4" class="fa-solid fa-atom"></i>
-                                                <span class="link-name" id="link-name-4">物联网</span>
+                                                <i id="link-icon-4" class="fa-solid fa-bullseye"></i>
+                                                <span class="link-name" id="link-name-4">专注计时</span>
                                             </div>
-                                        </a>
+                                        </button>
                                     </div>
                                     <div class="col 2">
                                         <a id="link-url-5" href="https://lab.lyf233.cn/" target="_blank" rel="noopener noreferrer">
@@ -422,6 +422,7 @@
                     <button type="button" role="tab" data-view="weather">天气</button>
                     <button type="button" role="tab" data-view="status">状态</button>
                     <button type="button" role="tab" data-view="activity">动态</button>
+                    <button type="button" role="tab" data-view="focus">专注</button>
                     <button type="button" role="tab" data-view="music">音乐</button>
                     <button type="button" role="tab" data-view="account">账号</button>
                 </div>
@@ -441,6 +442,22 @@
                 <div class="panel-view" data-view-content="activity">
                     <div class="panel-meta" id="activity-meta">正在读取动态</div>
                     <div class="activity-list" id="activity-list"></div>
+                </div>
+                <div class="panel-view" data-view-content="focus">
+                    <div class="focus-heading"><p>FOCUS SESSION</p><h2>专注计时</h2><span>把当前任务缩小到一个可完成的时间段。</span></div>
+                    <div class="focus-modes" role="group" aria-label="计时模式">
+                        <button type="button" data-focus-mode="focus">专注 25 分钟</button>
+                        <button type="button" data-focus-mode="break">休息 5 分钟</button>
+                    </div>
+                    <div class="focus-clock" id="focus-clock" aria-live="polite">
+                        <div class="focus-clock-content"><span id="focus-mode-label">专注中</span><strong id="focus-time">25:00</strong><small id="focus-status">准备开始</small></div>
+                    </div>
+                    <div class="focus-actions">
+                        <button type="button" id="focus-reset"><i class="fa-solid fa-rotate-left"></i><span>重置</span></button>
+                        <button type="button" class="focus-primary" id="focus-toggle"><i class="fa-solid fa-play"></i><span>开始</span></button>
+                        <button type="button" id="focus-skip"><i class="fa-solid fa-forward-step"></i><span>切换</span></button>
+                    </div>
+                    <div class="focus-summary"><span>今日完成</span><strong id="focus-completed">0</strong><small>个专注时段</small></div>
                 </div>
                 <div class="panel-view" data-view-content="music">
                     <div class="music-library-section">
@@ -521,9 +538,9 @@
         <div class="noscript fixed-top">请开启 JavaScript</div>
     </noscript>
     <script type="text/javascript" src="./js/main.js?v=20260816-5"></script>
-    <script type="text/javascript" src="./js/set.js?v=20260816-5"></script>
+    <script type="text/javascript" src="./js/set.js?v=20260816-6"></script>
     <script type="text/javascript" src="./js/time.js?v=20260815-15"></script>
-    <script type="text/javascript" src="./js/dashboard.js?v=20260815-15"></script>
+    <script type="text/javascript" src="./js/dashboard.js?v=20260816-16"></script>
     <script type="text/javascript" src="./js/motion.js?v=20260815-15"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
     <script type="text/javascript"
