@@ -22,6 +22,7 @@
     <link rel="stylesheet" type="text/css" href="./css/loading.css?v=20260815-12">
     <link rel="stylesheet" type="text/css" href="./css/animation.css?v=20260815-12">
     <link rel="stylesheet" type="text/css" href="./css/motion.css?v=20260815-15">
+    <link rel="stylesheet" type="text/css" href="./css/knowledge-map.css?v=20260816-1">
     <link rel="icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
@@ -167,6 +168,9 @@
                                 <div class="page-tools">
                                     <button type="button" id="quick-nav-open" aria-label="打开快捷导航" title="快捷导航">
                                         <i class="fa-solid fa-magnifying-glass"></i>
+                                    </button>
+                                    <button type="button" id="knowledge-map-open" aria-label="打开知识星图" title="知识星图">
+                                        <i class="fa-solid fa-share-nodes"></i>
                                     </button>
                                     <button type="button" data-panel-view="status" aria-label="查看站点状态" title="站点状态">
                                         <i class="fa-solid fa-signal"></i>
@@ -415,6 +419,20 @@
             </div>
         </div>
 
+        <section class="knowledge-map" id="knowledge-map" aria-hidden="true" aria-label="知识星图">
+            <header class="knowledge-map-header">
+                <div class="knowledge-map-brand"><span class="knowledge-map-mark"><i class="fa-solid fa-share-nodes"></i></span><div><span class="knowledge-map-kicker">SEMANTIC KNOWLEDGE SPACE</span><h2>知识星图</h2></div></div>
+                <div class="knowledge-map-stats"><strong id="knowledge-map-node-count">--</strong><span>节点</span><strong id="knowledge-map-edge-count">--</strong><span>连接</span></div>
+                <label class="knowledge-map-search"><i class="fa-solid fa-magnifying-glass"></i><input id="knowledge-map-query" type="search" placeholder="搜索节点与主题" autocomplete="off" aria-label="搜索知识星图"></label>
+                <div class="knowledge-map-filters" role="group" aria-label="星图筛选"><button type="button" class="is-active" data-map-filter="all">全部</button><button type="button" data-map-filter="article">文章</button><button type="button" data-map-filter="project">项目</button><button type="button" data-map-filter="topic">主题</button></div>
+                <div class="knowledge-map-actions"><button type="button" id="knowledge-map-reset" aria-label="重置星图视图" title="重置视图"><i class="fa-solid fa-crosshairs"></i></button><button type="button" id="knowledge-map-close" aria-label="关闭知识星图" title="关闭"><i class="fa-solid fa-xmark"></i></button></div>
+            </header>
+            <div class="knowledge-map-stage">
+                <div class="knowledge-map-canvas-wrap"><canvas id="knowledge-map-canvas" tabindex="0" aria-label="可交互知识关系图"></canvas><div class="knowledge-map-loading" id="knowledge-map-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>正在构建语义关系</span></div><div class="knowledge-map-legend"><span><i class="map-dot map-dot-article"></i>文章</span><span><i class="map-dot map-dot-project"></i>项目</span><span><i class="map-dot map-dot-topic"></i>主题</span><span><i class="map-dot map-dot-profile"></i>资料</span></div></div>
+                <aside class="knowledge-map-detail" id="knowledge-map-detail" aria-live="polite"><div class="knowledge-map-detail-kicker" id="knowledge-map-detail-kind">KNOWLEDGE NODE</div><h3 id="knowledge-map-detail-title">等待节点</h3><p id="knowledge-map-detail-summary">选择一个节点查看摘要和关联内容。</p><div class="knowledge-map-tags" id="knowledge-map-detail-tags"></div><div class="knowledge-map-related"><div class="knowledge-map-related-heading"><span>关联节点</span><small id="knowledge-map-related-count">0</small></div><div id="knowledge-map-related-list"></div></div><a class="knowledge-map-open-link" id="knowledge-map-detail-link" href="#" target="_blank" rel="noopener noreferrer" hidden>打开来源 <i class="fa-solid fa-arrow-up-right-from-square"></i></a></aside>
+            </div>
+        </section>
+
         <div class="panel-scrim" id="panel-scrim"></div>
         <aside class="home-panel" id="home-panel" aria-hidden="true">
             <header class="panel-header">
@@ -541,6 +559,8 @@
     <script type="text/javascript" src="./js/set.js?v=20260816-6"></script>
     <script type="text/javascript" src="./js/time.js?v=20260815-15"></script>
     <script type="text/javascript" src="./js/dashboard.js?v=20260816-16"></script>
+    <script src="https://fastly.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="./js/knowledge-map.js?v=20260816-1"></script>
     <script type="text/javascript" src="./js/motion.js?v=20260815-15"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
     <script type="text/javascript"

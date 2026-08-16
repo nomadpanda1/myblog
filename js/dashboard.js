@@ -9,6 +9,7 @@
         { name: '独立博客', description: 'blog.lyf233.cn', url: 'https://blog.lyf233.cn/', icon: 'fa-solid fa-blog', keywords: 'blog 文章 博客' },
         { name: '项目工坊', description: 'lab.lyf233.cn · 仿真、物联网与项目档案', url: 'https://lab.lyf233.cn/', icon: 'fa-solid fa-flask-vial', keywords: 'lab 实验 仿真 iot 物联网 仪表盘 项目' },
         { name: '知识检索', description: 'ai.lyf233.cn · 跨站全文搜索', url: 'https://ai.lyf233.cn/', icon: 'fa-solid fa-magnifying-glass-chart', keywords: 'search rag 向量 全文 知识库' },
+        { name: '知识星图', description: '文章、项目与主题的语义关系网络', url: '#knowledge-map', action: 'knowledge-map', icon: 'fa-solid fa-share-nodes', keywords: '知识星图 语义关系 文章 项目 主题 graph network' },
         { name: '个人简历', description: 'resume.lyf233.cn', url: 'https://resume.lyf233.cn/', icon: 'fa-solid fa-address-card', keywords: 'resume cv 简历' },
         { name: 'Hextris', description: 'hextris.lyf233.cn', url: 'https://hextris.lyf233.cn/', icon: 'fa-solid fa-gamepad', keywords: 'hextris 游戏' },
         { name: '西西弗斯', description: 'sisyphus.lyf233.cn', url: 'https://sisyphus.lyf233.cn/', icon: 'fa-solid fa-mountain', keywords: 'sisyphus 西西弗斯 游戏' },
@@ -103,7 +104,13 @@
 
     function openActiveCommand() {
         const site = commandMatches[activeCommandIndex];
-        if (site) window.location.href = site.url;
+        if (!site) return;
+        if (site.action === 'knowledge-map') {
+            closePalette();
+            window.dispatchEvent(new CustomEvent('home:knowledge-map-open'));
+            return;
+        }
+        window.location.href = site.url;
     }
 
     document.getElementById('quick-nav-open').addEventListener('click', openPalette);
