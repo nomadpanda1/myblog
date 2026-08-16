@@ -1,0 +1,237 @@
+/* Homepage motion layer: subtle depth and feedback without changing layout. */
+:root {
+    --scene-bg-x: 0px;
+    --scene-bg-y: 0px;
+    --scene-fg-x: 0px;
+    --scene-fg-y: 0px;
+}
+
+#home-particles {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: .82;
+    mix-blend-mode: screen;
+    filter: saturate(1.2) contrast(1.08);
+}
+
+body.motion-enabled section {
+    z-index: 1;
+}
+
+body.motion-enabled #bg {
+    transform: translate3d(var(--scene-bg-x), var(--scene-bg-y), 0) scale(1.055) !important;
+    transition: filter 1.5s ease, opacity 1s ease, transform 1.1s cubic-bezier(.2, .7, .2, 1) !important;
+    will-change: transform;
+}
+
+body.motion-enabled #main {
+    transform: translate3d(var(--scene-fg-x), var(--scene-fg-y), 0);
+    transition: transform 0.9s cubic-bezier(.2, .7, .2, 1);
+    will-change: transform;
+}
+
+body.motion-enabled:not(.motion-ready) .main-img,
+body.motion-enabled:not(.motion-ready) .message,
+body.motion-enabled:not(.motion-ready) .social,
+body.motion-enabled:not(.motion-ready) .hitokoto,
+body.motion-enabled:not(.motion-ready) .time,
+body.motion-enabled:not(.motion-ready) .project-line,
+body.motion-enabled:not(.motion-ready) .main-right > .link > .row {
+    opacity: 0;
+}
+
+body.motion-ready .main-img,
+body.motion-ready .message,
+body.motion-ready .social,
+body.motion-ready .hitokoto,
+body.motion-ready .time,
+body.motion-ready .project-line,
+body.motion-ready .main-right > .link > .row {
+    animation: home-reveal 0.72s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+body.motion-ready .main-img { animation-delay: 0.04s; }
+body.motion-ready .message { animation-delay: 0.12s; }
+body.motion-ready .social { animation-delay: 0.2s; }
+body.motion-ready .hitokoto,
+body.motion-ready .time { animation-delay: 0.1s; }
+body.motion-ready .project-line { animation-delay: 0.18s; }
+body.motion-ready .main-right > .link > .row:first-child { animation-delay: 0.24s; }
+body.motion-ready .main-right > .link > .row:nth-child(2) { animation-delay: 0.32s; }
+
+@keyframes home-reveal {
+    from {
+        opacity: 0;
+        translate: 0 18px;
+        scale: .985;
+        filter: blur(7px);
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+        scale: 1;
+        filter: blur(0);
+    }
+}
+
+body.motion-enabled .motion-tilt {
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --tilt-lift: 0px;
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translate3d(0, var(--tilt-lift), 0);
+    transform-style: preserve-3d;
+    transition: transform 0.32s cubic-bezier(.2, .7, .2, 1), background-color .3s, border-color .3s, box-shadow .3s;
+}
+
+body.motion-enabled .motion-tilt:hover {
+    --tilt-lift: -3px;
+    box-shadow: 0 16px 34px rgb(0 0 0 / 24%), inset 0 0 0 1px rgb(255 255 255 / 7%);
+}
+
+body.motion-enabled .motion-tilt:active {
+    --tilt-lift: 0px;
+    transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale(.985);
+}
+
+body.motion-enabled .link-card.motion-tilt i {
+    transform: translate3d(0, 0, 18px);
+    transition: transform .32s cubic-bezier(.2, .7, .2, 1), color .3s;
+}
+
+body.motion-enabled .link-card.motion-tilt:hover i {
+    transform: translate3d(0, -3px, 22px) scale(1.08);
+}
+
+body.motion-enabled .page-tools button,
+body.motion-enabled .social .link,
+body.motion-enabled .panel-close {
+    position: relative;
+}
+
+body.motion-enabled .motion-pressed {
+    animation: control-press .42s cubic-bezier(.2, .7, .2, 1);
+}
+
+@keyframes control-press {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgb(99 230 190 / 26%); }
+    42% { transform: scale(.9); box-shadow: 0 0 0 7px rgb(99 230 190 / 8%); }
+    100% { transform: scale(1); box-shadow: 0 0 0 12px transparent; }
+}
+
+body.motion-enabled .time.motion-tick .time-text {
+    animation: time-tick .34s ease-out;
+}
+
+@keyframes time-tick {
+    from { opacity: .45; filter: blur(2px); }
+    to { opacity: 1; filter: blur(0); }
+}
+
+body.motion-enabled .panel-view.is-active > *,
+body.motion-enabled .panel-view.is-active .status-item,
+body.motion-enabled .panel-view.is-active .activity-item,
+body.motion-enabled .panel-view.is-active .hourly-item,
+body.motion-enabled .panel-view.is-active .music-library-item {
+    animation: panel-item-in .38s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+body.motion-enabled .panel-view.is-active > :nth-child(2),
+body.motion-enabled .panel-view.is-active :is(.status-item, .activity-item, .hourly-item, .music-library-item):nth-child(2) {
+    animation-delay: .045s;
+}
+
+body.motion-enabled .panel-view.is-active > :nth-child(3),
+body.motion-enabled .panel-view.is-active :is(.status-item, .activity-item, .hourly-item, .music-library-item):nth-child(3) {
+    animation-delay: .09s;
+}
+
+body.motion-enabled .panel-view.is-active :is(.status-item, .activity-item, .hourly-item, .music-library-item):nth-child(n + 4) {
+    animation-delay: .13s;
+}
+
+@keyframes panel-item-in {
+    from { opacity: 0; transform: translate3d(12px, 8px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+body.motion-enabled .command-palette.is-open .command-result {
+    animation: command-item-in .32s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+body.motion-enabled .command-palette.is-open .command-result:nth-child(2) { animation-delay: .025s; }
+body.motion-enabled .command-palette.is-open .command-result:nth-child(3) { animation-delay: .05s; }
+body.motion-enabled .command-palette.is-open .command-result:nth-child(4) { animation-delay: .075s; }
+body.motion-enabled .command-palette.is-open .command-result:nth-child(n + 5) { animation-delay: .1s; }
+
+@keyframes command-item-in {
+    from { opacity: 0; transform: translate3d(0, 7px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+body.motion-enabled .music-stage.is-playing {
+    border-top-color: rgb(99 230 190 / 34%);
+    box-shadow: 0 -10px 36px rgb(99 230 190 / var(--music-glow, .06));
+}
+
+@media (max-width: 720px), (hover: none), (pointer: coarse) {
+    #home-particles {
+        opacity: .68;
+    }
+    body.motion-enabled #bg {
+        transform: scale(1.035) !important;
+        will-change: auto;
+    }
+
+    body.motion-enabled #main {
+        transform: none;
+        will-change: auto;
+    }
+
+    body.motion-enabled .motion-tilt,
+    body.motion-enabled .motion-tilt:hover,
+    body.motion-enabled .motion-tilt:active {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #home-particles {
+        opacity: .62;
+    }
+    body.motion-enabled #bg,
+    body.motion-enabled #main,
+    body.motion-enabled .motion-tilt {
+        transform: none !important;
+        transition: none !important;
+    }
+
+    body.motion-enabled:not(.motion-ready) .main-img,
+    body.motion-enabled:not(.motion-ready) .message,
+    body.motion-enabled:not(.motion-ready) .social,
+    body.motion-enabled:not(.motion-ready) .hitokoto,
+    body.motion-enabled:not(.motion-ready) .time,
+    body.motion-enabled:not(.motion-ready) .project-line,
+    body.motion-enabled:not(.motion-ready) .main-right > .link > .row {
+        opacity: 1;
+    }
+
+    body.motion-enabled *,
+    body.motion-enabled *::before,
+    body.motion-enabled *::after {
+        animation-duration: .01ms !important;
+        animation-delay: 0ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    /* The music visualizer is a user-controlled playback indicator, not page motion. */
+    body.motion-enabled .music-stage.is-playing .music-spectrum span {
+        animation-duration: var(--speed, .8s) !important;
+        animation-delay: var(--delay, 0s) !important;
+        animation-iteration-count: infinite !important;
+    }
+}

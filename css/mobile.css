@@ -222,6 +222,11 @@
         font-size: 0.85rem;
     }
 
+    .power {
+        padding: 0 12px;
+        line-height: 1.25;
+    }
+
     /*一言*/
     .col.hitokotos {
         margin-right: 0rem;
@@ -257,6 +262,10 @@
     #made {
         display: none;
     }
+
+    #footer-note {
+        display: none;
+    }
 }
 
 /*小于390px时*/
@@ -265,9 +274,6 @@
         display: none;
     }
 
-    #beian {
-        display: none;
-    }
 }
 
 /* 大于568px时 */
@@ -389,4 +395,121 @@
 
 .mobile .col.times {
     display: block;
+}
+
+@media (max-width: 720px) {
+    .page-tools {
+        gap: 4px;
+    }
+
+    .page-tools button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .home-panel {
+        width: 100%;
+        border-left: 0;
+    }
+
+    .panel-header {
+        padding-left: 10px;
+    }
+
+    .panel-body {
+        padding: 14px;
+    }
+
+    .music-stage {
+        height: 88px;
+        padding: 5px 14px;
+        grid-template-columns: minmax(190px, 48%) 1fr;
+        grid-template-rows: 18px 34px 20px;
+        column-gap: 12px;
+    }
+
+    .music-stage-meta {
+        gap: 5px;
+    }
+
+    .music-stage-controls {
+        gap: 1px;
+    }
+
+    .music-stage-controls button,
+    #music-favorite {
+        width: 28px;
+        height: 28px;
+        font-size: .78rem;
+    }
+
+    .music-stage-title > i {
+        display: none;
+    }
+
+    .music-stage-lyric {
+        font-size: .68rem;
+        line-height: 18px;
+    }
+
+    #music-favorite {
+        width: 30px;
+        height: 30px;
+    }
+
+    .music-spectrum {
+        height: 32px;
+        gap: 2px;
+    }
+
+    .music-progress-row {
+        grid-template-columns: 32px 1fr 32px;
+        gap: 5px;
+        font-size: 0.65rem;
+    }
+
+    body.music-stage-ready .menu {
+        top: 75%;
+    }
+
+    .hourly-item {
+        grid-template-columns: 50px 1fr 62px 52px;
+        font-size: 0.88rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .command-palette {
+        padding: 8px;
+        place-items: start center;
+    }
+
+    .command-dialog {
+        margin-top: 8vh;
+    }
+
+    .panel-tabs button {
+        padding: 0 4px;
+        font-size: 0.8rem;
+    }
+
+    .account-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .music-stage {
+        grid-template-columns: minmax(148px, 55%) 1fr;
+    }
+
+    #stage-track-name {
+        display: none;
+    }
+
+    .music-stage-title {
+        display: none;
+    }
+
+    .music-spectrum span:nth-child(even) {
+        display: none;
+    }
 }

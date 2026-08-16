@@ -9,18 +9,19 @@
     <meta name="force-rendering" content="webkit" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#424242" />
-    <meta name="description" content="一个默默无闻的主页">
-    <meta name="keywords" content="峰の小栈,个人主页">
+    <meta name="description" content="峰的个人主页与项目入口">
+    <meta name="keywords" content="峰,个人主页,个人项目">
     <meta name="author" content="峰">
-    <title>峰の主页</title>
+    <title>峰的主页</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://s1.hdslb.com/bfs/static/jinkela/long/font/regular.css" />
     <link rel="stylesheet" type="text/css"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="./css/style.css">
-    <link rel="stylesheet" type="text/css" href="./css/mobile.css">
-    <link rel="stylesheet" type="text/css" href="./css/loading.css">
-    <link rel="stylesheet" type="text/css" href="./css/animation.css">
+    <link rel="stylesheet" type="text/css" href="./css/style.css?v=20260816-4">
+    <link rel="stylesheet" type="text/css" href="./css/mobile.css?v=20260816-4">
+    <link rel="stylesheet" type="text/css" href="./css/loading.css?v=20260815-12">
+    <link rel="stylesheet" type="text/css" href="./css/animation.css?v=20260815-12">
+    <link rel="stylesheet" type="text/css" href="./css/motion.css?v=20260815-15">
     <link rel="icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
@@ -32,7 +33,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aplayer/1.10.1/APlayer.min.js" crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
 
-    <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -46,7 +46,7 @@
                 <div class="inner three"></div>
             </div>
             <div class="loading-word">
-                <p class="loading-title" id="loading-title">峰の主页</p>
+                <p class="loading-title" id="loading-title">峰的主页</p>
                 <span id="loading-text">加载中</span>
             </div>
         </div>
@@ -64,7 +64,7 @@
                     <div class="col left">
                         <div class="main-left">
                             <div class="main-img">
-                                <img id="logo-img" src="favicon.ico" alt="img">
+                                <img id="logo-img" src="favicon.ico" alt="峰的头像">
                                 <div class="img-title">
                                     <span class="img-title-big" id="logo-text-1">wuhobin</span>
                                     <span class="img-text" id="logo-text-2">.top</span>
@@ -74,31 +74,27 @@
                                 <div class="des" id="des">
                                     <i class="fa-solid fa-quote-left"></i>
                                     <div class="des-title"><span id="change">Hello&nbsp;World&nbsp;!</span><br /><span
-                                            id="change1">一个建立于 21 世纪的小站，存活于互联网的边缘(点一下试试)</span></div>
+                                            id="change1">把想法做成能用的东西，也记录沿途的折腾。</span></div>
                                     <i class="fa-solid fa-quote-right"></i>
                                 </div>
                             </div>
                             <div class="social" id="social">
                                 <a href="https://github.com/nomadpanda1" class="link" id="github" style="margin-left: 4px"
-                                    target="_blank">
+                                    target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub">
                                     <i class="fa-brands fa-github"></i>
                                 </a>
                                 <a href="https://admin.qidian.qq.com/static_proxy/b2b-qq/wpa-link/index.html#/person?uin=863088821"
-                                    class="link" id="qq" target="_blank">
+                                    class="link" id="qq" target="_blank" rel="noopener noreferrer" aria-label="QQ" title="QQ">
                                     <i class="fa-brands fa-qq"></i>
                                 </a>
-                                <a href="mailto:863088821@qq.com" class="link" id="email">
+                                <a href="mailto:863088821@qq.com" class="link" id="email" aria-label="电子邮件" title="电子邮件">
                                     <i class="fa-solid fa-envelope"></i>
                                 </a>
                                 <a href=" https://m.bilibili.com/space/383218820" class="link" id="bilibili"
-                                    target="_blank">
+                                    target="_blank" rel="noopener noreferrer" aria-label="哔哩哔哩" title="哔哩哔哩">
                                     <i class="fa-brands fa-bilibili"></i>
                                 </a>
-                                <a href="https://www.facebook.com/profile.php?id=61561966200869" class="link" id="facebook"
-                                    target="_blank">
-                                    <i class="fa-brands fa-facebook"></i>
-                                </a>
-                                <a id="link-text">通过这里联系峰峰</a>
+                                <a id="link-text">找到峰</a>
                             </div>
                         </div>
                     </div>
@@ -156,23 +152,37 @@
                                                 class="weekday">星期一</span><br><span class="time-text">00:00:00</span>
                                         </div>
                                         <div class="weather">
-                                            <span id="city_text">天气</span>&nbsp;
-                                            <span id="wea_text">加载失败</span>&nbsp;
+                                            <span id="city_text">当地</span>
+                                            <span id="wea_text">天气加载中</span>
                                             <span id="tem_text"></span>
-                                            <span id="win_text">次数</span>
-                                            <span id="win_speed">超限</span>
+                                            <span id="win_text"></span>
+                                            <span id="win_speed"></span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="line">
+                            <div class="line project-line">
                                 <i class="fa-solid fa-link"></i>
                                 <span class="line-text">网站列表</span>
+                                <div class="page-tools">
+                                    <button type="button" id="quick-nav-open" aria-label="打开快捷导航" title="快捷导航">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </button>
+                                    <button type="button" data-panel-view="status" aria-label="查看站点状态" title="站点状态">
+                                        <i class="fa-solid fa-signal"></i>
+                                    </button>
+                                    <button type="button" data-panel-view="activity" aria-label="查看项目动态" title="项目动态">
+                                        <i class="fa-solid fa-code-commit"></i>
+                                    </button>
+                                    <button type="button" data-panel-view="account" aria-label="打开账号" title="账号">
+                                        <i class="fa-regular fa-circle-user"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="link">
                                 <div class="row">
                                     <div class="col">
-                                        <a id="link-url-1" href="https://www.cnblogs.com/nomadpanda" target="_blank">
+                                        <a id="link-url-1" href="https://blog.lyf233.cn/" target="_blank" rel="noopener noreferrer">
                                             <div class="link-card cards">
                                                 <i id="link-icon-1" class="fa-solid fa-blog"></i>
                                                 <span class="link-name" id="link-name-1">博客</span>
@@ -180,44 +190,44 @@
                                         </a>
                                     </div>
                                     <div class="col 2">
-                                        <a id="link-url-2" href="https://tongji.baidu.com/" target="_blank">
+                                        <a id="link-url-2" href="https://hextris.lyf233.cn/" target="_blank" rel="noopener noreferrer">
                                             <div class="link-card cards">
-                                                <i id="link-icon-2" class="fa-solid fa-cloud"></i>
-                                                <span class="link-name" id="link-name-2">统计</span>
+                                                <i id="link-icon-2" class="fa-solid fa-gamepad"></i>
+                                                <span class="link-name" id="link-name-2">小游戏</span>
                                             </div>
                                         </a>
                                     </div>
                                     <div class="col">
-                                        <a id="link-url-3" href="https://blog.bywind.xyz/music/" target="_blank">
+                                        <a id="link-url-3" href="https://resume.lyf233.cn/" target="_blank" rel="noopener noreferrer">
                                             <div class="link-card cards">
-                                                <i id="link-icon-3" class="fa-solid fa-music"></i>
-                                                <span class="link-name" id="link-name-3">音乐</span>
+                                                <i id="link-icon-3" class="fa-solid fa-address-card"></i>
+                                                <span class="link-name" id="link-name-3">简历</span>
                                             </div>
                                         </a>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 1.5rem;">
                                     <div class="col">
-                                        <a id="link-url-4" href="https://www.bywind.xyz/" target="_blank">
+                                        <a id="link-url-4" href="https://iot.lyf233.cn/" target="_blank" rel="noopener noreferrer">
                                             <div class="link-card cards">
-                                                <i id="link-icon-4" class="fa-solid fa-compass"></i>
-                                                <span class="link-name" id="link-name-4">起始页</span>
+                                                <i id="link-icon-4" class="fa-solid fa-atom"></i>
+                                                <span class="link-name" id="link-name-4">物联网</span>
                                             </div>
                                         </a>
                                     </div>
                                     <div class="col 2">
-                                        <a id="link-url-5" href="https://blog.bywind.xyz/stars/" target="_blank">
+                                        <a id="link-url-5" href="https://lab.lyf233.cn/" target="_blank" rel="noopener noreferrer">
                                             <div class="link-card cards">
-                                                <i id="link-icon-5" class="fa-solid fa-book-bookmark"></i>
-                                                <span class="link-name" id="link-name-5">网址集</span>
+                                                <i id="link-icon-5" class="fa-solid fa-flask-vial"></i>
+                                                <span class="link-name" id="link-name-5">虚拟实验室</span>
                                             </div>
                                         </a>
                                     </div>
                                     <div class="col">
-                                        <a id="link-url-6" href="https://bywind.xyz/" target="_blank">
+                                        <a id="link-url-6" href="https://ai.lyf233.cn/" target="_blank" rel="noopener noreferrer">
                                             <div class="link-card cards">
-                                                <i id="link-icon-6" class="fa-solid fa-flask"></i>
-                                                <span class="link-name" id="link-name-6">实验室</span>
+                                                <i id="link-icon-6" class="fa-solid fa-magnifying-glass-chart"></i>
+                                                <span class="link-name" id="link-name-6">知识检索</span>
                                             </div>
                                         </a>
                                     </div>
@@ -235,6 +245,9 @@
                     <div class="close fixed-top" id="close">
                         <i class="fa-solid fa-circle-xmark"></i>
                     </div>
+                    <button class="settings-open" id="openmore" type="button" aria-label="打开主页设置" title="主页设置">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
                     <div class="line" style="margin-top: 1rem;">
                         <i class="fa-solid fa-angle-left"></i>
                         <span class="line-text">时间胶囊</span>
@@ -269,69 +282,74 @@
                     </div>
                     <div class="line">
                         <i class="fa-solid fa-angle-left"></i>
-                        <span class="line-text">杂七杂八</span>
+                        <span class="line-text">常用去处</span>
                         <i class="fa-solid fa-angle-right"></i>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <a href="#" target="_blank">
+                            <a href="https://github.com/nomadpanda1" target="_blank" rel="noopener noreferrer">
                                 <div class="link-card cards">
-                                    <span class="link-name">站点监测</span>
+                                    <i class="fa-brands fa-github"></i>
+                                    <span class="link-name">GitHub</span>
                                 </div>
                             </a>
                         </div>
                         <div class="col 2">
-                            <a href="https://www.lyf233.cn/" target="_blank">
+                            <a href="https://space.bilibili.com/383218820" target="_blank" rel="noopener noreferrer">
                                 <div class="link-card cards">
-                                    <span class="link-name">播放器</span>
+                                    <i class="fa-brands fa-bilibili"></i>
+                                    <span class="link-name">哔哩哔哩</span>
                                 </div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="#" target="_blank">
+                            <a href="https://tool.lu/" target="_blank" rel="noopener noreferrer">
                                 <div class="link-card cards">
-                                    <span class="link-name">编辑器</span>
+                                    <i class="fa-solid fa-toolbox"></i>
+                                    <span class="link-name">在线工具</span>
                                 </div>
                             </a>
                         </div>
                     </div>
                     <div class="row" style="margin-top: 1.5rem;">
                         <div class="col">
-                            <a href="https://www.lyf233.cn/" target="_blank">
+                            <a href="https://excalidraw.com/" target="_blank" rel="noopener noreferrer">
                                 <div class="link-card cards">
-                                    <span class="link-name">时光相册</span>
+                                    <i class="fa-solid fa-pencil"></i>
+                                    <span class="link-name">Excalidraw</span>
                                 </div>
                             </a>
                         </div>
                         <div class="col 2">
-                            <a href="#" target="_blank">
+                            <a href="https://speed.cloudflare.com/" target="_blank" rel="noopener noreferrer">
                                 <div class="link-card cards">
-                                    <span class="link-name">文件库</span>
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                    <span class="link-name">网络测速</span>
                                 </div>
                             </a>
                         </div>
                         <div class="col">
-                            <a id="openmore">
+                            <a href="https://developer.mozilla.org/zh-CN/" target="_blank" rel="noopener noreferrer">
                                 <div class="link-card cards">
-                                    <span class="link-name">更多</span>
+                                    <i class="fa-solid fa-code"></i>
+                                    <span class="link-name">MDN 文档</span>
                                 </div>
                             </a>
                         </div>
                     </div>
                 </div>
                 <div class="box" id="box" style="display: none">
-                    <div class="box-wrapper">
+                    <div class="box-wrapper settings-panel">
                         <div class="closebox fixed-top" id="closemore">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </div>
                         <div class="box-left">
-                            <div class="img-title">
-                                <span class="img-title-big" id="logo-title-other">Bywind</span>
-                                <span class="img-text" id="logo-title-other-small">.xyz</span><br />
-                                <span class="img-text">&nbsp;v&nbsp;1.0</span>
-                                <a href="https://github.com/haonan15" target="_blank">
-                                    <i class="fa-brands fa-github"></i>
-                                </a>
+                            <div class="settings-heading">
+                                <i class="fa-solid fa-sliders"></i>
+                                <div>
+                                    <h2>主页设置</h2>
+                                    <p>选择本地壁纸，刷新后仍会保留。</p>
+                                </div>
                             </div>
                             <div class="accordion" id="accordion">
                                 <div class="accordion-item">
@@ -350,7 +368,7 @@
                                                     <div class="form-radio">
                                                         <input type="radio" class="set-wallpaper" style="display: none;"
                                                             id="radio1" value="1" name="wallpaper-type">
-                                                        <label for="radio1">默认壁纸</label>
+                                                        <label for="radio1">随机壁纸</label>
                                                     </div>
                                                     <div class="form-radio">
                                                         <input type="radio" class="set-wallpaper" style="display: none;"
@@ -372,43 +390,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="headingTwo">
-                                        <button class="accordion-button collapsed" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#collapseTwo"
-                                            aria-expanded="false" aria-controls="collapseTwo">
-                                            更新日志
-                                        </button>
-                                    </h2>
-                                    <div id="collapseTwo" class="accordion-collapse collapse"
-                                        aria-labelledby="headingTwo" data-bs-parent="#accordion">
-                                        <div class="accordion-body">
-                                            <div class="upnote">
-                                                <span class="uptext">
-                                                    <i class="fa-solid fa-circle-plus"></i>&nbsp;音乐歌单支持快速自定义
-                                                </span>
-                                                <span class="uptext">
-                                                    <i class="fa-solid fa-circle-plus"></i>&nbsp;壁纸支持个性化设置
-                                                </span>
-                                                <span class="uptext">
-                                                    <i class="fa-solid fa-circle-plus"></i>&nbsp;音乐播放器支持音量控制
-                                                </span>
-                                                <span class="uptext">
-                                                    <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;修复天气 API
-                                                </span>
-                                                <span class="uptext">
-                                                    <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;时光胶囊显示错误
-                                                </span>
-                                                <span class="uptext">
-                                                    <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;移动端动画及细节
-                                                </span>
-                                                <span class="uptext">
-                                                    <i class="fa-solid fa-screwdriver-wrench"></i>&nbsp;图标更换为 Font
-                                                    Awesome</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         <div class="box-right">
@@ -420,32 +401,130 @@
                 </div>
             </div>
         </main>
+
+        <div class="command-palette" id="command-palette" aria-hidden="true">
+            <div class="command-dialog" role="dialog" aria-modal="true" aria-label="快捷导航">
+                <div class="command-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="command-input" placeholder="搜索全部站点、文章与项目" autocomplete="off">
+                    <button type="button" id="command-close" aria-label="关闭快捷导航" title="关闭">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="command-results" id="command-results"></div>
+            </div>
+        </div>
+
+        <div class="panel-scrim" id="panel-scrim"></div>
+        <aside class="home-panel" id="home-panel" aria-hidden="true">
+            <header class="panel-header">
+                <div class="panel-tabs" role="tablist" aria-label="主页信息">
+                    <button type="button" role="tab" data-view="weather">天气</button>
+                    <button type="button" role="tab" data-view="status">状态</button>
+                    <button type="button" role="tab" data-view="activity">动态</button>
+                    <button type="button" role="tab" data-view="music">音乐</button>
+                    <button type="button" role="tab" data-view="account">账号</button>
+                </div>
+                <button type="button" id="panel-close" class="panel-close" aria-label="关闭面板" title="关闭">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </header>
+            <div class="panel-body">
+                <div class="panel-view" data-view-content="weather">
+                    <div class="weather-summary" id="weather-summary"></div>
+                    <div class="hourly-forecast" id="hourly-forecast"></div>
+                </div>
+                <div class="panel-view" data-view-content="status">
+                    <div class="panel-meta" id="status-meta">正在读取状态</div>
+                    <div class="status-list" id="status-list"></div>
+                </div>
+                <div class="panel-view" data-view-content="activity">
+                    <div class="panel-meta" id="activity-meta">正在读取动态</div>
+                    <div class="activity-list" id="activity-list"></div>
+                </div>
+                <div class="panel-view" data-view-content="music">
+                    <div class="music-library-section">
+                        <h3>收藏</h3>
+                        <div class="music-library-list" id="favorite-list"></div>
+                    </div>
+                    <div class="music-library-section">
+                        <h3>最近播放</h3>
+                        <div class="music-library-list" id="recent-list"></div>
+                    </div>
+                </div>
+                <div class="panel-view" data-view-content="account">
+                    <div class="account-panel" id="account-content">
+                        <div class="empty-state">正在读取账号状态</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="music-stage" id="music-stage" aria-label="音乐播放进度">
+            <div class="music-stage-meta">
+                <div class="music-stage-title">
+                    <i class="fa-solid fa-wave-square"></i>
+                    <span id="stage-track-name">音乐已就绪</span>
+                </div>
+                <div class="music-stage-controls" aria-label="音乐播放控制">
+                    <button type="button" id="stage-prev" aria-label="上一首" title="上一首">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button type="button" id="stage-play" class="music-stage-play" aria-label="播放" title="播放">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <button type="button" id="stage-next" aria-label="下一首" title="下一首">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+                <button type="button" id="music-favorite" aria-label="收藏当前音乐" title="收藏">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+            </div>
+            <div class="music-stage-lyric" id="stage-lyric" aria-live="polite">歌词准备中</div>
+            <div class="music-spectrum" id="music-spectrum" aria-hidden="true"></div>
+            <div class="music-progress-row">
+                <span id="music-current-time">00:00</span>
+                <input type="range" id="music-progress" min="0" max="1000" value="0" step="1" aria-label="音乐进度">
+                <span id="music-duration">00:00</span>
+            </div>
+        </div>
+
         <footer id="footer" class="fixed-bottom footer">
             <div class="power">
                 <span id="power">Copyright&nbsp;&copy;
                     <script>
                         document.write((new Date()).getFullYear());
                     </script>
-                    <a href="https://www.lyf233.cn/" id="power-text">Aurora</a>
+                    <a href="https://www.lyf233.cn/" id="power-text">峰</a>
                 </span>
-                <a href="https://beian.miit.gov.cn" id="beian" target="_blank">&amp;&nbsp;鄂ICP备20006685号</a>
+                <span id="footer-note">·&nbsp;由 Caddy 与 Cloudflare 提供服务</span>
             </div>
             <div id="lrc"></div>
         </footer>
     </section>
     <script>
+        // 清理旧版离线缓存，避免发布后继续混用旧脚本和新页面。
         if ("serviceWorker" in navigator) {
-            window.addEventListener("load", function () {
-                navigator.serviceWorker.register("sw.js");
+            window.addEventListener("load", async function () {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map(registration => registration.unregister()));
+                if ("caches" in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.filter(name => name.startsWith("ql:"))
+                        .map(name => caches.delete(name)));
+                }
             });
         }
     </script>
     <noscript>
         <div class="noscript fixed-top">请开启 JavaScript</div>
     </noscript>
-    <script type="text/javascript" src="./js/main.js"></script>
-    <script type="text/javascript" src="./js/set.js"></script>
-    <script type="text/javascript" src="./js/time.js"></script>
+    <script type="text/javascript" src="./js/main.js?v=20260816-4"></script>
+    <script type="text/javascript" src="./js/set.js?v=20260815-15"></script>
+    <script type="text/javascript" src="./js/time.js?v=20260815-15"></script>
+    <script type="text/javascript" src="./js/dashboard.js?v=20260815-15"></script>
+    <script type="text/javascript" src="./js/motion.js?v=20260815-15"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
     <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.min.js">

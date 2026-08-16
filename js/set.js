@@ -1,7 +1,7 @@
 /* 自定义配置 */
 /* 尚未完善 */
 $(function () {
-    let url = "./setting.json" // 🔴 修复1：修正了配置文件的路径
+    let url = "./setting.json?v=20260815-12"
     $.getJSON(
         url,
         function (data) {
@@ -23,7 +23,6 @@ $(function () {
             $('#qq').attr('href', "https://wpa.qq.com/msgrd?v=3&uin=" + data.qq + "&site=qq&menu=yes");
             $('#email').attr('href', "mailto:" + data.email);
             $('#bilibili').attr('href', "https://space.bilibili.com/" + data.bilibili);
-            $('#telegram').attr('href', "https://t.me/" + data.telegram);
             /* 快捷链接 */
             $('#link-url-1').attr('href', data.link_1[0]);
             $('#link-icon-1').attr('class', data.link_1[1]);
@@ -45,7 +44,7 @@ $(function () {
             $('#link-name-6').html(data.link_6[2]);
             //页脚版权
             $('#power-text').html(data.Copyright_text);
-            $('#beian').html("&amp;&nbsp;" + data.beian);
+            $('#footer-note').html("·&nbsp;" + data.footer_note);
         }
     )
 });
@@ -81,11 +80,35 @@ function getBgImg() {
 }
 
 let bg_img_preinstall = {
-    "type": "2", // 1:默认背景 2:每日一图 3:随机风景 4:随机动漫
-    "2": "https://api.dujin.org/bing/1920.php", // 每日一图
-    "3": "https://tu.ltyuanfang.cn/api/fengjing.php", // 随机风景
-    "4": "https://www.dmoe.cc/random.php" // 随机动漫
+    "type": "2", // 1:随机本地壁纸 2:每日一图 3:随机风景 4:随机动漫
+    "2": "https://bing.biturl.top/?resolution=1920&format=json&index=0&mkt=zh-CN",
+    "3": "https://tu.ltyuanfang.cn/api/fengjing.php",
+    "4": "https://www.dmoe.cc/random.php"
 };
+
+function applyBackground(src) {
+    const fallback = `./img/background${1 + ~~(Math.random() * 10)}.webp`;
+    $('#bg')
+        .removeClass('error')
+        .off('error.background')
+        .one('error.background', function () {
+            $(this).attr('src', fallback);
+        })
+        .attr('src', src);
+}
+
+async function applyDailyBackground() {
+    try {
+        const response = await fetch(bg_img_preinstall[2], { signal: AbortSignal.timeout(8000) });
+        if (!response.ok) throw new Error(`Daily wallpaper returned ${response.status}`);
+        const data = await response.json();
+        if (!data.url) throw new Error('Daily wallpaper URL is missing');
+        applyBackground(data.url);
+    } catch (error) {
+        console.warn('每日壁纸加载失败，已切换到本地壁纸', error);
+        applyBackground(`./img/background${1 + ~~(Math.random() * 10)}.webp`);
+    }
+}
 
 // 更改背景图片
 function setBgImgInit() {
@@ -94,16 +117,16 @@ function setBgImgInit() {
 
     switch (bg_img["type"]) {
         case "1":
-            $('#bg').attr('src', `./img/background${1 + ~~(Math.random() * 10)}.webp`) //随机默认壁纸
+            applyBackground(`./img/background${1 + ~~(Math.random() * 10)}.webp`);
             break;
         case "2":
-            $('#bg').attr('src', bg_img_preinstall[2]); //必应每日
+            applyDailyBackground();
             break;
         case "3":
-            $('#bg').attr('src', bg_img_preinstall[3]); //随机风景
+            applyBackground(`${bg_img_preinstall[3]}?t=${Date.now()}`);
             break;
         case "4":
-            $('#bg').attr('src', bg_img_preinstall[4]); //随机动漫
+            applyBackground(`${bg_img_preinstall[4]}?t=${Date.now()}`);
             break;
     }
 };

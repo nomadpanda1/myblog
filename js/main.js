@@ -58,7 +58,7 @@ window.addEventListener('load', function () {
 
     //延迟加载音乐播放器
     let element = document.createElement("script");
-    element.src = "./js/music.js";
+    element.src = "./js/music.js?v=20260816-4";
     document.body.appendChild(element);
 
     //中文字体缓加载-此处写入字体源文件 （暂时弃用）
@@ -128,41 +128,148 @@ $('#hitokoto').click(function () {
     }
 });
 
-//获取天气
-//请前往 https://www.mxnzp.com/doc/list 申请 app_id 和 app_secret
-//请前往 https://dev.qweather.com/ 申请 key
-const add_id = "vcpmlmqiqnjpxwq1"; // app_id
-const app_secret = "PeYnsesgkmK7qREhIFppIcsoN0ZShv3c"; // app_secret
-const key = "691d007d585841c09e9b41e79853ecc2" // key
-function getWeather() {
-    fetch("https://www.mxnzp.com/api/ip/self?app_id=" + add_id + "&app_secret=" + app_secret)
-        .then(response => response.json())
-        .then(data => {
-            let str = data.data.city
-            let city = str.replace(/市/g, '')
-            console.log(data,"sssss")
-            $('#city_text').html(city);
-            fetch("https://geoapi.qweather.com/v2/city/lookup?location=" + city + "&number=1&key=" + key)
-                .then(response => response.json())
-                .then(location => {
-                    let id = location.location[0].id
-                    fetch("https://devapi.qweather.com/v7/weather/now?location=" + id + "&key=" + key)
-                        .then(response => response.json())
-                        .then(weather => {
-                            $('#wea_text').html(weather.now.text)
-                            $('#tem_text').html(weather.now.temp + "°C&nbsp;")
-                            $('#win_text').html(weather.now.windDir)
-                            $('#win_speed').html(weather.now.windScale + "级")
-                        })
-                })
-        })
-        .catch(console.error);
+// 无密钥 IP 定位采用双源回退，再由 Open-Meteo 提供实时天气。
+const defaultWeatherLocation = {
+    city: '成都',
+    latitude: 30.5728,
+    longitude: 104.0668,
+    timezone: 'Asia/Shanghai',
+};
+
+let activeTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+const locationProviders = [
+    {
+        url: 'https://ipwho.is/',
+        parse(data) {
+            if (data.success === false) throw new Error(data.message || 'IPWho location failed');
+            return {
+                city: data.city || data.region || data.country,
+                latitude: Number(data.latitude),
+                longitude: Number(data.longitude),
+                timezone: data.timezone?.id,
+            };
+        },
+    },
+    {
+        url: 'https://get.geojs.io/v1/ip/geo.json',
+        parse(data) {
+            return {
+                city: data.city || data.region || data.country,
+                latitude: Number(data.latitude),
+                longitude: Number(data.longitude),
+                timezone: data.timezone,
+            };
+        },
+    },
+];
+
+const weatherDescriptions = {
+    0: '晴',
+    1: '大部晴朗',
+    2: '多云',
+    3: '阴',
+    45: '有雾',
+    48: '雾凇',
+    51: '小毛毛雨',
+    53: '毛毛雨',
+    55: '强毛毛雨',
+    56: '冻毛毛雨',
+    57: '强冻毛毛雨',
+    61: '小雨',
+    63: '中雨',
+    65: '大雨',
+    66: '冻雨',
+    67: '强冻雨',
+    71: '小雪',
+    73: '中雪',
+    75: '大雪',
+    77: '米雪',
+    80: '小阵雨',
+    81: '阵雨',
+    82: '强阵雨',
+    85: '小阵雪',
+    86: '强阵雪',
+    95: '雷雨',
+    96: '雷雨伴冰雹',
+    99: '强雷雨伴冰雹',
+};
+
+function getWindDirection(degrees) {
+    const directions = ['北风', '东北风', '东风', '东南风', '南风', '西南风', '西风', '西北风'];
+    return directions[Math.round(degrees / 45) % directions.length];
+}
+
+function getWindScale(speed) {
+    const thresholds = [1, 6, 12, 20, 29, 39, 50, 62, 75, 89, 103, 118];
+    const scale = thresholds.findIndex(threshold => speed < threshold);
+    return `${scale === -1 ? 12 : scale}级`;
+}
+
+async function getVisitorLocation() {
+    for (const provider of locationProviders) {
+        try {
+            const response = await fetch(provider.url, { signal: AbortSignal.timeout(5000) });
+            if (!response.ok) throw new Error(`Location service returned ${response.status}`);
+            const location = provider.parse(await response.json());
+            if (!location.city || !Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) {
+                throw new Error('Location service returned incomplete data');
+            }
+            return location;
+        } catch (error) {
+            console.warn('IP 定位源不可用，正在尝试备用源', error);
+        }
+    }
+
+    return defaultWeatherLocation;
+}
+
+async function getWeather() {
+    const weatherLocation = await getVisitorLocation();
+    window.homeWeatherLocation = weatherLocation;
+    try {
+        new Intl.DateTimeFormat('zh-CN', { timeZone: weatherLocation.timezone }).format();
+        activeTimezone = weatherLocation.timezone;
+    } catch (error) {
+        console.warn('定位服务返回了无效时区，继续使用浏览器时区', error);
+    }
+    const params = new URLSearchParams({
+        latitude: weatherLocation.latitude,
+        longitude: weatherLocation.longitude,
+        current: 'temperature_2m,weather_code,wind_speed_10m,wind_direction_10m',
+        timezone: 'Asia/Shanghai',
+        forecast_days: '1',
+    });
+
+    try {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
+            signal: AbortSignal.timeout(8000),
+        });
+        if (!response.ok) {
+            throw new Error(`Open-Meteo returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        const current = data.current;
+        $('#city_text').text(weatherLocation.city);
+        $('#wea_text').text(weatherDescriptions[current.weather_code] || '天气变化中');
+        $('#tem_text').text(`${Math.round(current.temperature_2m)}°C`);
+        $('#win_text').text(getWindDirection(current.wind_direction_10m));
+        $('#win_speed').text(getWindScale(current.wind_speed_10m));
+        return true;
+    } catch (error) {
+        console.warn('天气加载失败', error);
+        $('#city_text').text(weatherLocation.city);
+        $('#wea_text').text('天气暂不可用');
+        $('#tem_text, #win_text, #win_speed').text('');
+        return false;
+    }
 }
 
 getWeather();
 
 let wea = 0;
-$('#upWeather').click(function () {
+$('#upWeather').click(async function () {
     if (wea == 0) {
         wea = 1;
         let index = setInterval(function () {
@@ -171,11 +278,11 @@ $('#upWeather').click(function () {
                 clearInterval(index);
             }
         }, 60000);
-        getWeather();
+        const updated = await getWeather();
         iziToast.show({
             timeout: 2000,
-            icon: "fa-solid fa-cloud-sun",
-            message: '实时天气已更新'
+            icon: updated ? "fa-solid fa-cloud-sun" : "fa-solid fa-circle-exclamation",
+            message: updated ? '实时天气已更新' : '天气服务暂时不可用'
         });
     } else {
         iziToast.show({
@@ -186,31 +293,36 @@ $('#upWeather').click(function () {
     }
 });
 
-//获取时间
+// 按 IP 定位得到的时区显示时间；定位失败时使用浏览器时区。
 let t = null;
 t = setTimeout(time, 1000);
 
 function time() {
     clearTimeout(t);
-    dt = new Date();
-    let y = dt.getYear() + 1900;
-    let mm = dt.getMonth() + 1;
-    let d = dt.getDate();
-    let weekday = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-    let day = dt.getDay();
-    let h = dt.getHours();
-    let m = dt.getMinutes();
-    let s = dt.getSeconds();
-    if (h < 10) {
-        h = "0" + h;
-    }
-    if (m < 10) {
-        m = "0" + m;
-    }
-    if (s < 10) {
-        s = "0" + s;
-    }
-    $("#time").html(y + "&nbsp;年&nbsp;" + mm + "&nbsp;月&nbsp;" + d + "&nbsp;日&nbsp;" + "<span class='weekday'>" + weekday[day] + "</span><br>" + "<span class='time-text'>" + h + ":" + m + ":" + s + "</span>");
+    const now = new Date();
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('zh-CN', {
+        timeZone: activeTimezone,
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        weekday: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23',
+    }).formatToParts(now).map(part => [part.type, part.value]));
+    const offset = new Intl.DateTimeFormat('zh-CN', {
+        timeZone: activeTimezone,
+        timeZoneName: 'shortOffset',
+    }).formatToParts(now).find(part => part.type === 'timeZoneName')?.value || '';
+    const timezoneText = [activeTimezone, offset].filter(Boolean).join(' · ');
+
+    $("#time").html(
+        `${parts.year}&nbsp;年&nbsp;${parts.month}&nbsp;月&nbsp;${parts.day}&nbsp;日&nbsp;` +
+        `<span class='weekday'>${parts.weekday}</span><br>` +
+        `<span class='time-text'>${parts.hour}:${parts.minute}:${parts.second}</span>` +
+        `<span class='time-zone'>${timezoneText}</span>`
+    );
     t = setTimeout(time, 1000);
 }
 
@@ -238,27 +350,22 @@ $("#social").mouseover(function () {
 $("#github").mouseover(function () {
     $("#link-text").html("去 Github 看看");
 }).mouseout(function () {
-    $("#link-text").html("通过这里联系峰峰");
+    $("#link-text").html("找到峰");
 });
 $("#qq").mouseover(function () {
     $("#link-text").html("有什么事吗");
 }).mouseout(function () {
-    $("#link-text").html("通过这里联系峰峰");
+    $("#link-text").html("找到峰");
 });
 $("#email").mouseover(function () {
     $("#link-text").html("来封 Email");
 }).mouseout(function () {
-    $("#link-text").html("通过这里联系峰峰");
+    $("#link-text").html("找到峰");
 });
 $("#bilibili").mouseover(function () {
-    $("#link-text").html("关注柒峰喵，关注柒峰谢谢喵~");
+    $("#link-text").html("去哔哩哔哩看看");
 }).mouseout(function () {
-    $("#link-text").html("通过这里联系峰峰");
-});
-$("#telegram").mouseover(function () {
-    $("#link-text").html("你懂的 ~");
-}).mouseout(function () {
-    $("#link-text").html("通过这里联系峰峰");
+    $("#link-text").html("找到峰");
 });
 
 //自动变灰
@@ -297,7 +404,7 @@ $('#switchmore').on('click', function () {
     } else {
         $('#container').attr('class', 'container');
         $("#change").html("Hello&nbsp;World&nbsp;!");
-        $("#change1").html("一个建立于 21 世纪的小站，存活于互联网的边缘");
+        $("#change1").html("把想法做成能用的东西，也记录沿途的折腾。");
     }
 });
 
@@ -346,7 +453,7 @@ window.addEventListener('load', function () {
             //移动端隐藏更多页面
             $('#container').attr('class', 'container');
             $("#change").html("Hello&nbsp;World&nbsp;!");
-            $("#change1").html("一个建立于 21 世纪的小站，存活于互联网的边缘");
+            $("#change1").html("把想法做成能用的东西，也记录沿途的折腾。");
 
             //移动端隐藏弹窗页面
             $('#box').css("display", "none");
@@ -374,15 +481,15 @@ $("#more").hover(function () {
     $('#close').css("display", "none");
 })
 
-//屏蔽右键
-document.oncontextmenu = function () {
+// 禁止右键菜单
+document.addEventListener('contextmenu', function (event) {
+    event.preventDefault();
     iziToast.show({
-        timeout: 2000,
+        timeout: 1800,
         icon: "fa-solid fa-circle-exclamation",
-        message: '为了浏览体验，本站禁用右键'
+        message: '本站已禁用右键菜单'
     });
-    return false;
-}
+});
 
 //控制台输出
 //console.clear();
@@ -398,7 +505,7 @@ color: #425AEF;
 let styleContent = `
 color: rgb(30,152,255);
 `
-let title1 = '峰の主页'
+let title1 = '峰的主页'
 let title2 = `
 
 ██╗      ██╗  ██╗    █████╗ 
@@ -409,7 +516,8 @@ let title2 = `
 ╚══╝       ╚═╝      ╚═╝           
 `
 let content = `
-博客:  https://www.cnblogs.com/nomadpanda
+主页:  https://www.lyf233.cn
+博客:  https://blog.lyf233.cn
 Github:  https://github.com/nomadpanda1
 `
 console.log(`%c${title1} %c${title2}
