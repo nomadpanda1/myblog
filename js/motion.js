@@ -10,8 +10,194 @@
     let targetY = 0;
     let audioEnergy = 0;
     let weatherMode = 'clear';
+    let ambient3d = null;
 
     body.classList.add('motion-enabled');
+
+    function initThreeAmbient() {
+        const canvas = document.createElement('canvas');
+        canvas.id = 'home-particles';
+        canvas.dataset.renderer = 'three-webgl';
+        canvas.setAttribute('aria-hidden', 'true');
+        body.insertAdjacentElement('afterbegin', canvas);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(46, 1, .1, 220);
+        camera.position.z = 42;
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+        renderer.setClearColor(0x000000, 0);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+
+        const constellation = new THREE.Group();
+        scene.add(constellation);
+        const count = reducedMotion.matches ? 46 : window.innerWidth < 720 ? 62 : 92;
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+        const seeds = [];
+        for (let index = 0; index < count; index += 1) {
+            const seed = {
+                x: (Math.random() - .5) * 62,
+                y: (Math.random() - .5) * 38,
+                z: (Math.random() - .5) * 34,
+                accent: index % 7 === 0,
+            };
+            seeds.push(seed);
+            positions[index * 3] = seed.x;
+            positions[index * 3 + 1] = seed.y;
+            positions[index * 3 + 2] = seed.z;
+        }
+        const pointGeometry = new THREE.BufferGeometry();
+        pointGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        pointGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const pointMaterial = new THREE.PointsMaterial({
+            size: .29,
+            transparent: true,
+            opacity: .88,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true,
+        });
+        const points = new THREE.Points(pointGeometry, pointMaterial);
+        constellation.add(points);
+
+        const linkPositions = [];
+        seeds.forEach((seed, index) => {
+            const candidates = seeds.map((other, otherIndex) => ({
+                other,
+                otherIndex,
+                distance: otherIndex === index ? Infinity : Math.hypot(seed.x - other.x, seed.y - other.y, seed.z - other.z),
+            })).sort((a, b) => a.distance - b.distance).slice(0, index % 4 === 0 ? 2 : 1);
+            candidates.forEach(({ other, otherIndex }) => {
+                if (otherIndex < index) return;
+                linkPositions.push(seed.x, seed.y, seed.z, other.x, other.y, other.z);
+            });
+        });
+        const linkGeometry = new THREE.BufferGeometry();
+        linkGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linkPositions, 3));
+        const linkMaterial = new THREE.LineBasicMaterial({
+            color: 0x72d8cb,
+            transparent: true,
+            opacity: .22,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        constellation.add(new THREE.LineSegments(linkGeometry, linkMaterial));
+
+        const rings = [9, 15.5, 22].map((radius, index) => {
+            const ring = new THREE.LineLoop(
+                new THREE.BufferGeometry().setFromPoints(Array.from({ length: 96 }, (_, step) => {
+                    const angle = step / 96 * Math.PI * 2;
+                    return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius * .48, 0);
+                })),
+                new THREE.LineBasicMaterial({ color: index === 1 ? 0xffd691 : 0x63e6be, transparent: true, opacity: .12 })
+            );
+            ring.rotation.set(.36 + index * .18, -.18 + index * .34, index * .55);
+            constellation.add(ring);
+            return ring;
+        });
+
+        const meteorGeometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-4.5, 0, 0), new THREE.Vector3(0, 0, 0),
+        ]);
+        const meteorMaterial = new THREE.LineBasicMaterial({ color: 0xd9fff7, transparent: true, opacity: .7, blending: THREE.AdditiveBlending });
+        const meteor = new THREE.Line(meteorGeometry, meteorMaterial);
+        meteor.visible = !reducedMotion.matches;
+        constellation.add(meteor);
+        const ripples = [];
+        let energy = 0;
+        let mode = 'clear';
+        let pointerX = 0;
+        let pointerY = 0;
+        let lastTime = performance.now();
+
+        function setPalette(nextMode) {
+            mode = nextMode;
+            const primary = new THREE.Color(nextMode === 'rain' || nextMode === 'storm' ? '#84ceff' : nextMode === 'snow' ? '#e1eeff' : '#90ffec');
+            const accent = new THREE.Color(nextMode === 'storm' ? '#d7b8ff' : '#ffd691');
+            seeds.forEach((seed, index) => {
+                const color = seed.accent ? accent : primary;
+                colors[index * 3] = color.r;
+                colors[index * 3 + 1] = color.g;
+                colors[index * 3 + 2] = color.b;
+            });
+            pointGeometry.attributes.color.needsUpdate = true;
+            linkMaterial.color.copy(primary);
+        }
+
+        function resize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            camera.aspect = width / Math.max(1, height);
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height, false);
+        }
+
+        function spawnRipple(event) {
+            if (reducedMotion.matches) return;
+            const distance = camera.position.z;
+            const worldHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * distance;
+            const worldWidth = worldHeight * camera.aspect;
+            const x = (event.clientX / window.innerWidth - .5) * worldWidth;
+            const y = -(event.clientY / window.innerHeight - .5) * worldHeight;
+            const material = new THREE.MeshBasicMaterial({ color: 0x8effe9, transparent: true, opacity: .52, blending: THREE.AdditiveBlending, depthWrite: false });
+            const ripple = new THREE.Mesh(new THREE.RingGeometry(.42, .52, 48), material);
+            ripple.position.set(x, y, 1.5);
+            scene.add(ripple);
+            ripples.push({ mesh: ripple, life: 1 });
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+            const delta = Math.min(.05, (time - lastTime) / 1000);
+            lastTime = time;
+            if (document.hidden || body.classList.contains('knowledge-map-open')) return;
+            if (!reducedMotion.matches) {
+                constellation.rotation.y += delta * (.018 + energy * .045);
+                constellation.rotation.z += delta * .004;
+            }
+            constellation.rotation.x += (pointerY * .09 - constellation.rotation.x) * .028;
+            constellation.rotation.y += (pointerX * .12 - constellation.rotation.y * .12) * .003;
+            pointMaterial.size = .22 + energy * .2 + (mode === 'snow' ? .08 : 0);
+            pointMaterial.opacity = .72 + energy * .24;
+            linkMaterial.opacity = .13 + energy * .24;
+            if (!reducedMotion.matches) {
+                rings.forEach((ring, index) => { ring.rotation.z += delta * (.012 + index * .007); });
+            }
+            if (meteor.visible) {
+                meteor.position.x += delta * (7 + energy * 5);
+                meteor.position.y += delta * 2.1;
+                if (meteor.position.x > 34) meteor.position.set(-34, -12 + Math.random() * 25, -4 + Math.random() * 8);
+            }
+            for (let index = ripples.length - 1; index >= 0; index -= 1) {
+                const ripple = ripples[index];
+                ripple.life -= delta * 1.45;
+                ripple.mesh.scale.multiplyScalar(1 + delta * 2.8);
+                ripple.mesh.material.opacity = Math.max(0, ripple.life * .5);
+                if (ripple.life <= 0) {
+                    scene.remove(ripple.mesh);
+                    ripple.mesh.geometry.dispose();
+                    ripple.mesh.material.dispose();
+                    ripples.splice(index, 1);
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', resize, { passive: true });
+        window.addEventListener('pointermove', event => {
+            pointerX = (event.clientX / Math.max(1, window.innerWidth) - .5) * 2;
+            pointerY = (event.clientY / Math.max(1, window.innerHeight) - .5) * 2;
+        }, { passive: true });
+        window.addEventListener('pointerdown', spawnRipple, { passive: true });
+        resize();
+        setPalette(weatherMode);
+        animate(performance.now());
+        ambient3d = {
+            setEnergy(value) { energy = value; },
+            setWeather(value) { setPalette(value); },
+        };
+    }
 
     function initParticles() {
         const canvas = document.createElement('canvas');
@@ -127,7 +313,13 @@
         drawParticles();
     }
 
-    initParticles();
+    try {
+        if (!window.THREE) throw new Error('Three.js unavailable');
+        initThreeAmbient();
+    } catch (error) {
+        console.warn('Three.js 环境层不可用，切换到兼容模式', error);
+        initParticles();
+    }
 
     function updateTimePhase() {
         const hour = new Date().getHours();
@@ -137,11 +329,13 @@
     window.addEventListener('home:audio-energy', event => {
         audioEnergy = Math.max(0, Math.min(1, Number(event.detail?.energy) || 0));
         root.style.setProperty('--ambient-energy', audioEnergy.toFixed(3));
+        ambient3d?.setEnergy(audioEnergy);
     });
     window.addEventListener('home:weather-changed', event => {
         const code = Number(event.detail?.code);
         weatherMode = code >= 95 ? 'storm' : code >= 71 && code <= 86 ? 'snow' : code >= 51 && code <= 82 ? 'rain' : code >= 45 ? 'fog' : 'clear';
         body.dataset.ambient = weatherMode;
+        ambient3d?.setWeather(weatherMode);
     });
     updateTimePhase();
     setInterval(updateTimePhase, 60000);
