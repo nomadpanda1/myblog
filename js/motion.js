@@ -30,7 +30,7 @@
 
         const constellation = new THREE.Group();
         scene.add(constellation);
-        const count = reducedMotion.matches ? 46 : window.innerWidth < 720 ? 62 : 92;
+        const count = reducedMotion.matches ? 46 : window.innerWidth < 720 ? 86 : 138;
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
         const seeds = [];
@@ -60,6 +60,39 @@
         });
         const points = new THREE.Points(pointGeometry, pointMaterial);
         constellation.add(points);
+
+        const fieldCount = reducedMotion.matches ? 42 : window.innerWidth < 720 ? 150 : 320;
+        const fieldPositions = new Float32Array(fieldCount * 3);
+        const fieldColors = new Float32Array(fieldCount * 3);
+        const fieldVelocity = [];
+        const fieldPhase = [];
+        for (let index = 0; index < fieldCount; index += 1) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 5 + Math.random() * 26;
+            fieldPositions[index * 3] = Math.cos(angle) * radius;
+            fieldPositions[index * 3 + 1] = Math.sin(angle) * radius * .58;
+            fieldPositions[index * 3 + 2] = (Math.random() - .5) * 18;
+            fieldVelocity.push({
+                x: (Math.random() - .5) * .018,
+                y: (Math.random() - .5) * .018,
+                z: (Math.random() - .5) * .012,
+            });
+            fieldPhase.push(Math.random() * Math.PI * 2);
+        }
+        const fieldGeometry = new THREE.BufferGeometry();
+        fieldGeometry.setAttribute('position', new THREE.BufferAttribute(fieldPositions, 3));
+        fieldGeometry.setAttribute('color', new THREE.BufferAttribute(fieldColors, 3));
+        const fieldMaterial = new THREE.PointsMaterial({
+            size: .34,
+            transparent: true,
+            opacity: .6,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true,
+        });
+        const field = new THREE.Points(fieldGeometry, fieldMaterial);
+        constellation.add(field);
 
         const linkPositions = [];
         seeds.forEach((seed, index) => {
@@ -109,6 +142,7 @@
         let mode = 'clear';
         let pointerX = 0;
         let pointerY = 0;
+        let fieldPulse = 0;
         let lastTime = performance.now();
 
         function setPalette(nextMode) {
@@ -122,6 +156,13 @@
                 colors[index * 3 + 2] = color.b;
             });
             pointGeometry.attributes.color.needsUpdate = true;
+            for (let index = 0; index < fieldCount; index += 1) {
+                const color = index % 9 === 0 ? accent : primary;
+                fieldColors[index * 3] = color.r;
+                fieldColors[index * 3 + 1] = color.g;
+                fieldColors[index * 3 + 2] = color.b;
+            }
+            fieldGeometry.attributes.color.needsUpdate = true;
             linkMaterial.color.copy(primary);
         }
 
@@ -145,6 +186,7 @@
             ripple.position.set(x, y, 1.5);
             scene.add(ripple);
             ripples.push({ mesh: ripple, life: 1 });
+            fieldPulse = Math.min(1.8, fieldPulse + .9);
         }
 
         function animate(time) {
@@ -160,7 +202,45 @@
             constellation.rotation.y += (pointerX * .12 - constellation.rotation.y * .12) * .003;
             pointMaterial.size = .22 + energy * .2 + (mode === 'snow' ? .08 : 0);
             pointMaterial.opacity = .72 + energy * .24;
+            fieldMaterial.size = .28 + energy * .22;
+            fieldMaterial.opacity = .48 + energy * .3;
             linkMaterial.opacity = .13 + energy * .24;
+            const fieldArray = fieldGeometry.attributes.position.array;
+            const distance = camera.position.z;
+            const worldHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * distance;
+            const worldWidth = worldHeight * camera.aspect;
+            const attractX = pointerX * worldWidth * .38;
+            const attractY = -pointerY * worldHeight * .38;
+            for (let index = 0; index < fieldCount; index += 1) {
+                const offset = index * 3;
+                const velocity = fieldVelocity[index];
+                const phase = fieldPhase[index];
+                const x = fieldArray[offset];
+                const y = fieldArray[offset + 1];
+                const z = fieldArray[offset + 2];
+                const dx = attractX - x;
+                const dy = attractY - y;
+                const radius = Math.max(2, Math.hypot(dx, dy));
+                const force = Math.min(1, 16 / radius) * (.018 + energy * .024);
+                velocity.x += (dx / radius) * force + (-dy / radius) * .006;
+                velocity.y += (dy / radius) * force + (dx / radius) * .006;
+                velocity.z += ((Math.sin(time * .001 + phase) * .003) - z * .0008);
+                if (fieldPulse > 0) {
+                    velocity.x -= (dx / radius) * fieldPulse * .018;
+                    velocity.y -= (dy / radius) * fieldPulse * .018;
+                }
+                velocity.x *= .985;
+                velocity.y *= .985;
+                velocity.z *= .975;
+                fieldArray[offset] = x + velocity.x * (1 + energy * 2.4);
+                fieldArray[offset + 1] = y + velocity.y * (1 + energy * 2.4);
+                fieldArray[offset + 2] = z + velocity.z;
+                if (Math.abs(fieldArray[offset]) > worldWidth * .8) fieldArray[offset] *= -.84;
+                if (Math.abs(fieldArray[offset + 1]) > worldHeight * .8) fieldArray[offset + 1] *= -.84;
+                if (Math.abs(fieldArray[offset + 2]) > 18) fieldArray[offset + 2] *= -.84;
+            }
+            fieldGeometry.attributes.position.needsUpdate = true;
+            fieldPulse = Math.max(0, fieldPulse - delta * 1.8);
             if (!reducedMotion.matches) {
                 rings.forEach((ring, index) => { ring.rotation.z += delta * (.012 + index * .007); });
             }
