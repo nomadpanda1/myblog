@@ -130,6 +130,50 @@
             return ring;
         });
 
+        // A compact reactor layer gives the ambient field a focal point instead of a flat star field.
+        const reactor = new THREE.Group();
+        reactor.position.set(0, -3.2, 4.2);
+        const reactorShell = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(2.35, 2),
+            new THREE.MeshBasicMaterial({ color: 0x52f4dc, wireframe: true, transparent: true, opacity: .34, blending: THREE.AdditiveBlending }),
+        );
+        const reactorCore = new THREE.Mesh(
+            new THREE.SphereGeometry(1.12, 32, 32),
+            new THREE.MeshBasicMaterial({ color: 0xd8fff6, transparent: true, opacity: .62, blending: THREE.AdditiveBlending }),
+        );
+        const reactorGlow = new THREE.Mesh(
+            new THREE.SphereGeometry(2.8, 24, 24),
+            new THREE.MeshBasicMaterial({ color: 0x38d9d0, transparent: true, opacity: .045, blending: THREE.AdditiveBlending, depthWrite: false }),
+        );
+        reactor.add(reactorGlow, reactorCore, reactorShell);
+        const reactorRings = [
+            [3.2, 0x59f0ff, .34, .3],
+            [4.3, 0xffc76c, .22, -.22],
+        ].map(([radius, color, opacity, tilt]) => {
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(radius, .018, 8, 96),
+                new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending }),
+            );
+            ring.rotation.set(Math.PI * .5 + tilt, tilt, tilt * 1.7);
+            reactor.add(ring);
+            return ring;
+        });
+        const reactorStreams = Array.from({ length: 5 }, (_, index) => {
+            const points = Array.from({ length: 30 }, (_, step) => {
+                const progress = step / 29;
+                const angle = progress * Math.PI * 2 + index * 1.26;
+                const radius = 4.8 - progress * 2.1;
+                return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius * .48, (progress - .5) * 1.8);
+            });
+            const stream = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(points),
+                new THREE.LineBasicMaterial({ color: index % 2 ? 0xffc76c : 0x6df7dc, transparent: true, opacity: .44, blending: THREE.AdditiveBlending }),
+            );
+            reactor.add(stream);
+            return stream;
+        });
+        constellation.add(reactor);
+
         const meteorGeometry = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(-4.5, 0, 0), new THREE.Vector3(0, 0, 0),
         ]);
@@ -243,6 +287,14 @@
             fieldPulse = Math.max(0, fieldPulse - delta * 1.8);
             if (!reducedMotion.matches) {
                 rings.forEach((ring, index) => { ring.rotation.z += delta * (.012 + index * .007); });
+                reactor.rotation.y += delta * (.08 + energy * .15);
+                reactor.rotation.x += delta * .018;
+                reactorShell.rotation.x -= delta * .12;
+                reactorShell.rotation.z += delta * .09;
+                reactorCore.scale.setScalar(1 + Math.sin(time * .0024) * (.06 + energy * .11));
+                reactorGlow.material.opacity = .035 + energy * .11 + Math.sin(time * .0018) * .012;
+                reactorRings.forEach((ring, index) => { ring.rotation.z += delta * (index ? -.08 : .12); });
+                reactorStreams.forEach((stream, index) => { stream.rotation.z += delta * (index % 2 ? -.035 : .045); stream.material.opacity = .25 + energy * .3; });
             }
             if (meteor.visible) {
                 meteor.position.x += delta * (7 + energy * 5);
