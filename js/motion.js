@@ -132,7 +132,8 @@
 
         // A compact reactor layer gives the ambient field a focal point instead of a flat star field.
         const reactor = new THREE.Group();
-        reactor.position.set(0, -3.2, 4.2);
+        reactor.position.set(14, -10.5, -3.5);
+        reactor.scale.setScalar(window.innerWidth < 720 ? .58 : .74);
         const reactorShell = new THREE.Mesh(
             new THREE.IcosahedronGeometry(2.35, 2),
             new THREE.MeshBasicMaterial({ color: 0x52f4dc, wireframe: true, transparent: true, opacity: .34, blending: THREE.AdditiveBlending }),
@@ -219,18 +220,22 @@
         }
 
         function spawnRipple(event) {
-            if (reducedMotion.matches) return;
+            // A direct click is explicit user input, so keep this short feedback even when ambient motion is reduced.
+            canvas.dataset.lastPulse = String(Date.now());
             const distance = camera.position.z;
             const worldHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * distance;
             const worldWidth = worldHeight * camera.aspect;
             const x = (event.clientX / window.innerWidth - .5) * worldWidth;
             const y = -(event.clientY / window.innerHeight - .5) * worldHeight;
-            const material = new THREE.MeshBasicMaterial({ color: 0x8effe9, transparent: true, opacity: .52, blending: THREE.AdditiveBlending, depthWrite: false });
-            const ripple = new THREE.Mesh(new THREE.RingGeometry(.42, .52, 48), material);
-            ripple.position.set(x, y, 1.5);
-            scene.add(ripple);
-            ripples.push({ mesh: ripple, life: 1 });
-            fieldPulse = Math.min(1.8, fieldPulse + .9);
+            const colors = [0x8effe9, 0xffd691];
+            colors.forEach((color, index) => {
+                const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .52 - index * .12, blending: THREE.AdditiveBlending, depthWrite: false });
+                const ripple = new THREE.Mesh(new THREE.RingGeometry(.42 + index * .28, .52 + index * .28, 48), material);
+                ripple.position.set(x, y, 1.5 - index * .25);
+                scene.add(ripple);
+                ripples.push({ mesh: ripple, life: 1 - index * .12 });
+            });
+            fieldPulse = Math.min(2.2, fieldPulse + 1.15);
         }
 
         function animate(time) {

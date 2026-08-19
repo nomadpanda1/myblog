@@ -1,9 +1,4 @@
-/*
-作者: imsyy
-主页：https://www.imsyy.top/
-GitHub：https://github.com/imsyy/home
-版权所有，请勿删除
-*/
+/* 峰の数字自留地 · 主站样式 */
 
 @charset "utf-8";
 
@@ -1150,8 +1145,13 @@ footer {
 }
 
 .iziToast > .iziToast-close {
-    background: url(https://cdn.jsdelivr.net/gh/imsyy/file/pic/close.png) no-repeat 50% 50% !important;
-    background-size: 8px !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, .82) !important;
+    font-size: 18px !important;
+}
+
+.iziToast > .iziToast-close::before {
+    content: "×";
 }
 
 /*滚动条样式*/

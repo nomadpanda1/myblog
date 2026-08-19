@@ -1,7 +1,7 @@
 /* 自定义配置 */
 /* 尚未完善 */
 if (window.jQuery) $(function () {
-    let url = "./setting.json?v=20260816-6"
+    let url = "./setting.json?v=20260819-identity-1"
     $.getJSON(
         url,
         function (data) {
