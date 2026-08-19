@@ -1,6 +1,6 @@
 /* 自定义配置 */
 /* 尚未完善 */
-$(function () {
+if (window.jQuery) $(function () {
     let url = "./setting.json?v=20260816-6"
     $.getJSON(
         url,
@@ -88,13 +88,14 @@ let bg_img_preinstall = {
 
 function applyBackground(src) {
     const fallback = `./img/background${1 + ~~(Math.random() * 10)}.webp`;
-    $('#bg')
-        .removeClass('error')
-        .off('error.background')
-        .one('error.background', function () {
-            $(this).attr('src', fallback);
-        })
-        .attr('src', src);
+    const background = document.getElementById('bg');
+    if (!background) return;
+    background.classList.remove('error');
+    background.onerror = () => {
+        background.onerror = null;
+        background.src = fallback;
+    };
+    background.src = src;
 }
 
 async function applyDailyBackground() {
@@ -110,12 +111,15 @@ async function applyDailyBackground() {
     }
 }
 
-// 更改背景图片
-function setBgImgInit() {
-    let bg_img = getBgImg();
-    $("input[name='wallpaper-type'][value=" + bg_img["type"] + "]").click();
+const wallpaperNames = {
+    "1": "随机壁纸",
+    "2": "每日一图",
+    "3": "随机风景",
+    "4": "随机动漫",
+};
 
-    switch (bg_img["type"]) {
+function applyWallpaperType(type) {
+    switch (String(type)) {
         case "1":
             applyBackground(`./img/background${1 + ~~(Math.random() * 10)}.webp`);
             break;
@@ -129,21 +133,53 @@ function setBgImgInit() {
             applyBackground(`${bg_img_preinstall[4]}?t=${Date.now()}`);
             break;
     }
+}
+
+function selectWallpaper(type, notify = true) {
+    const nextType = String(type);
+    const bg_img = getBgImg();
+    bg_img.type = nextType;
+    setBgImg(bg_img);
+    const option = document.querySelector(`input[name='wallpaper-type'][value='${nextType}']`);
+    if (option) option.checked = true;
+    applyWallpaperType(nextType);
+    if (notify && window.iziToast) {
+        iziToast.show({
+            icon: "fa-solid fa-image",
+            timeout: 1800,
+            message: `已切换为${wallpaperNames[nextType]}`,
+        });
+    }
+}
+
+// 更改背景图片
+function setBgImgInit() {
+    let bg_img = getBgImg();
+    const option = document.querySelector(`input[name='wallpaper-type'][value='${bg_img.type}']`);
+    if (option) option.checked = true;
+    applyWallpaperType(bg_img.type);
 };
 
-$(document).ready(function () {
+function cycleMobileWallpaper(event) {
+    event?.stopPropagation();
+    const sequence = ["1", "3", "4", "2"];
+    const current = String(getBgImg().type || "1");
+    const next = sequence[(sequence.indexOf(current) + 1) % sequence.length];
+    selectWallpaper(next);
+}
+
+function bindWallpaperControls() {
     // 壁纸数据加载
     setBgImgInit();
     // 设置背景图片
-    $("#wallpaper").on("click", ".set-wallpaper", function () {
-        let type = $(this).val();
-        let bg_img = getBgImg();
-        bg_img["type"] = type;
-        iziToast.show({
-            icon: "fa-solid fa-image",
-            timeout: 2500,
-            message: '壁纸设置成功，刷新后生效',
-        });
-        setBgImg(bg_img);
+    document.getElementById('wallpaper')?.addEventListener('click', function (event) {
+        const option = event.target.closest('.set-wallpaper');
+        if (option) selectWallpaper(option.value);
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindWallpaperControls, { once: true });
+} else {
+    bindWallpaperControls();
+}
