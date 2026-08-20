@@ -571,9 +571,151 @@
         drawParticles();
     }
 
+    function initPixelField() {
+        const canvas = document.createElement('canvas');
+        canvas.id = 'home-particles';
+        canvas.dataset.renderer = 'pixel-field';
+        canvas.setAttribute('aria-hidden', 'true');
+        body.insertAdjacentElement('afterbegin', canvas);
+        const context = canvas.getContext('2d', { alpha: true });
+        const pointer = { x: -1000, y: -1000 };
+        const ripples = [];
+        const sparks = [];
+        let particles = [];
+        let width = 0;
+        let height = 0;
+        let lastFrame = 0;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            const ratio = Math.min(window.devicePixelRatio || 1, 1.25);
+            canvas.width = Math.round(width * ratio);
+            canvas.height = Math.round(height * ratio);
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+            context.setTransform(ratio, 0, 0, ratio, 0, 0);
+            const count = reducedMotion.matches ? 520 : width < 720 ? 560 : 900;
+            particles = Array.from({ length: count }, (_, index) => {
+                const u = Math.random();
+                const v = Math.random();
+                const band = Math.sin(u * Math.PI * 2.6) * .5 + .5;
+                const spread = .18 + band * .28;
+                return {
+                    x: width * (.08 + u * .82),
+                    y: height * (.46 + (v - .5) * spread + Math.sin(u * 8) * .08),
+                    phase: Math.random() * Math.PI * 2,
+                    speed: .25 + Math.random() * .75,
+                    size: 1.35 + (index % 5) * .58,
+                    alpha: .34 + band * .5 + Math.random() * .18,
+                    warm: index % 13 === 0,
+                };
+            });
+        }
+
+        function draw(time) {
+            requestAnimationFrame(draw);
+            if (document.hidden || body.classList.contains('knowledge-map-open')) return;
+            if (time - lastFrame < 20) return;
+            lastFrame = time;
+            context.clearRect(0, 0, width, height);
+            context.globalCompositeOperation = 'screen';
+
+            const light = (x, y, radius, color, alpha) => {
+                const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
+                gradient.addColorStop(0, `rgba(${color},${alpha})`);
+                gradient.addColorStop(1, `rgba(${color},0)`);
+                context.fillStyle = gradient;
+                context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+            };
+            light(width * .18, height * .08, Math.max(180, width * .24), '214,231,255', .12);
+            light(width * .78, height * .3, Math.max(160, width * .22), '121,163,226', .1);
+            light(width * .63, height * .82, Math.max(180, width * .3), '255,218,158', .07);
+
+            context.strokeStyle = 'rgba(190,213,248,.045)';
+            context.lineWidth = 1;
+            for (let x = 0; x < width; x += 92) {
+                context.beginPath();
+                context.moveTo(x, 0);
+                context.lineTo(x, height);
+                context.stroke();
+            }
+            for (let y = 0; y < height; y += 92) {
+                context.beginPath();
+                context.moveTo(0, y);
+                context.lineTo(width, y);
+                context.stroke();
+            }
+
+            const pointerStrength = precisePointer.matches ? 1 : 0;
+            particles.forEach((particle, index) => {
+                const wave = Math.sin(time * .00038 * particle.speed + particle.phase);
+                const drift = Math.cos(time * .00024 * particle.speed + particle.phase * .7);
+                let x = particle.x + wave * 13;
+                let y = particle.y + drift * 8;
+                const dx = x - pointer.x;
+                const dy = y - pointer.y;
+                const distance = Math.hypot(dx, dy);
+                if (pointerStrength && distance < 170 && distance > 0) {
+                    const force = (1 - distance / 170) * 18;
+                    x += dx / distance * force;
+                    y += dy / distance * force;
+                }
+                const shimmer = .78 + Math.sin(time * .0014 + particle.phase) * .22;
+                const color = particle.warm ? '255,218,158' : '198,218,255';
+                context.fillStyle = `rgba(${color},${Math.max(.04, particle.alpha * shimmer)})`;
+                const size = particle.size + audioEnergy * .8;
+                context.fillRect(x, y, size, size);
+                if (index % 29 === 0) {
+                    context.fillStyle = `rgba(${color},${particle.alpha * .28})`;
+                    context.fillRect(x - size * 1.8, y - size * 1.8, size * 4.6, size * 4.6);
+                }
+            });
+
+            ripples.forEach(ripple => {
+                ripple.radius += 4;
+                ripple.alpha *= .92;
+                context.strokeStyle = `rgba(170,226,255,${ripple.alpha})`;
+                context.lineWidth = 1.5;
+                context.strokeRect(ripple.x - ripple.radius, ripple.y - ripple.radius, ripple.radius * 2, ripple.radius * 2);
+            });
+            while (ripples.length && ripples[0].alpha < .02) ripples.shift();
+
+            sparks.forEach(spark => {
+                spark.life -= .035;
+                spark.x += spark.vx;
+                spark.y += spark.vy;
+                context.fillStyle = `rgba(255,218,158,${spark.life})`;
+                context.fillRect(spark.x, spark.y, 2, 2);
+            });
+            while (sparks.length && sparks[0].life <= 0) sparks.shift();
+            context.globalCompositeOperation = 'source-over';
+        }
+
+        window.addEventListener('resize', resize, { passive: true });
+        window.addEventListener('pointermove', event => {
+            if (precisePointer.matches && pointer.x > -500) {
+                const distance = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y);
+                const count = Math.min(3, Math.max(1, Math.round(distance / 30)));
+                for (let index = 0; index < count; index += 1) {
+                    sparks.push({ x: event.clientX, y: event.clientY, vx: (Math.random() - .5) * 1.6, vy: (Math.random() - .5) * 1.6, life: .7 });
+                }
+                if (sparks.length > 80) sparks.splice(0, sparks.length - 80);
+            }
+            pointer.x = event.clientX;
+            pointer.y = event.clientY;
+        }, { passive: true });
+        window.addEventListener('pointerdown', event => {
+            canvas.dataset.lastPulse = String(Date.now());
+            ripples.push({ x: event.clientX, y: event.clientY, radius: 10, alpha: .7 });
+            if (ripples.length > 5) ripples.shift();
+        }, { passive: true });
+        resize();
+        draw(performance.now());
+    }
+
     try {
-        if (!window.THREE) throw new Error('Three.js unavailable');
-        initThreeAmbient();
+        initPixelField();
     } catch (error) {
         console.warn('Three.js 环境层不可用，切换到兼容模式', error);
         initParticles();
