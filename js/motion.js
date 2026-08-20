@@ -183,6 +183,31 @@
         meteor.visible = !reducedMotion.matches;
         constellation.add(meteor);
         const ripples = [];
+        const trailCapacity = reducedMotion.matches || !precisePointer.matches ? 0 : 84;
+        const trailPositions = trailCapacity ? new Float32Array(trailCapacity * 3) : null;
+        const trailColors = trailCapacity ? new Float32Array(trailCapacity * 3) : null;
+        const trailParticles = trailCapacity ? Array.from({ length: trailCapacity }, () => ({ life: 0, vx: 0, vy: 0, vz: 0 })) : null;
+        let trailCursor = 0;
+        let lastTrailWorld = null;
+        let trailPoints = null;
+        let trailMaterial = null;
+        if (trailCapacity) {
+            trailPositions.fill(-100);
+            const trailGeometry = new THREE.BufferGeometry();
+            trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+            trailGeometry.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+            trailMaterial = new THREE.PointsMaterial({
+                size: .22,
+                transparent: true,
+                opacity: .78,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                sizeAttenuation: true,
+            });
+            trailPoints = new THREE.Points(trailGeometry, trailMaterial);
+            scene.add(trailPoints);
+        }
         let energy = 0;
         let mode = 'clear';
         let pointerX = 0;
@@ -238,6 +263,46 @@
             fieldPulse = Math.min(2.2, fieldPulse + 1.15);
         }
 
+        function pointerToWorld(clientX, clientY) {
+            const distance = camera.position.z;
+            const worldHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * distance;
+            const worldWidth = worldHeight * camera.aspect;
+            return {
+                x: (clientX / Math.max(1, window.innerWidth) - .5) * worldWidth,
+                y: -(clientY / Math.max(1, window.innerHeight) - .5) * worldHeight,
+            };
+        }
+
+        function spawnHoverTrail(event) {
+            if (!trailCapacity) return;
+            const current = pointerToWorld(event.clientX, event.clientY);
+            const previous = lastTrailWorld || current;
+            const distance = Math.hypot(current.x - previous.x, current.y - previous.y);
+            lastTrailWorld = current;
+            if (distance < .35) return;
+            const count = Math.min(5, Math.max(1, Math.round(distance / 3.4)));
+            for (let step = 0; step < count; step += 1) {
+                const index = trailCursor;
+                trailCursor = (trailCursor + 1) % trailCapacity;
+                const particle = trailParticles[index];
+                const progress = (step + 1) / count;
+                const offset = index * 3;
+                trailPositions[offset] = previous.x + (current.x - previous.x) * progress + (Math.random() - .5) * .42;
+                trailPositions[offset + 1] = previous.y + (current.y - previous.y) * progress + (Math.random() - .5) * .42;
+                trailPositions[offset + 2] = 1.6 + Math.random() * 1.8;
+                particle.life = .48 + Math.random() * .24;
+                particle.vx = (Math.random() - .5) * .028 - (current.x - previous.x) * .012;
+                particle.vy = (Math.random() - .5) * .028 - (current.y - previous.y) * .012;
+                particle.vz = (Math.random() - .5) * .018;
+                const color = index % 4 === 0 ? new THREE.Color(0xffd691) : new THREE.Color(0x8effe9);
+                trailColors[offset] = color.r;
+                trailColors[offset + 1] = color.g;
+                trailColors[offset + 2] = color.b;
+            }
+            trailPoints.geometry.attributes.position.needsUpdate = true;
+            trailPoints.geometry.attributes.color.needsUpdate = true;
+        }
+
         function animate(time) {
             requestAnimationFrame(animate);
             const delta = Math.min(.05, (time - lastTime) / 1000);
@@ -289,6 +354,29 @@
                 if (Math.abs(fieldArray[offset + 2]) > 18) fieldArray[offset + 2] *= -.84;
             }
             fieldGeometry.attributes.position.needsUpdate = true;
+            if (trailCapacity) {
+                trailParticles.forEach((particle, index) => {
+                    const offset = index * 3;
+                    if (particle.life <= 0) {
+                        trailPositions[offset + 2] = -100;
+                        return;
+                    }
+                    particle.life -= delta;
+                    particle.vx *= .965;
+                    particle.vy *= .965;
+                    particle.vz *= .96;
+                    trailPositions[offset] += particle.vx * (1 + energy * 2);
+                    trailPositions[offset + 1] += particle.vy * (1 + energy * 2);
+                    trailPositions[offset + 2] += particle.vz;
+                    const glow = Math.max(0, particle.life * 2);
+                    trailColors[offset] = glow;
+                    trailColors[offset + 1] = Math.min(1, glow * .98);
+                    trailColors[offset + 2] = Math.min(1, glow * .88);
+                });
+                trailMaterial.opacity = .62 + energy * .28;
+                trailPoints.geometry.attributes.position.needsUpdate = true;
+                trailPoints.geometry.attributes.color.needsUpdate = true;
+            }
             fieldPulse = Math.max(0, fieldPulse - delta * 1.8);
             if (!reducedMotion.matches) {
                 rings.forEach((ring, index) => { ring.rotation.z += delta * (.012 + index * .007); });
@@ -325,6 +413,7 @@
         window.addEventListener('pointermove', event => {
             pointerX = (event.clientX / Math.max(1, window.innerWidth) - .5) * 2;
             pointerY = (event.clientY / Math.max(1, window.innerHeight) - .5) * 2;
+            spawnHoverTrail(event);
         }, { passive: true });
         window.addEventListener('pointerdown', spawnRipple, { passive: true });
         resize();
@@ -345,6 +434,8 @@
         const pointer = { x: -1000, y: -1000 };
         let particles = [];
         let ripples = [];
+        let hoverTrail = [];
+        let lastPointer = null;
         let comet = null;
         let frame = 0;
 
@@ -434,12 +525,42 @@
                 context.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
                 context.stroke();
             });
+            hoverTrail = hoverTrail.filter(spark => spark.life > .01);
+            hoverTrail.forEach(spark => {
+                spark.life -= .028;
+                spark.x += spark.vx;
+                spark.y += spark.vy;
+                spark.vx *= .96;
+                spark.vy *= .96;
+                context.fillStyle = `rgba(255,214,145,${spark.life * .72})`;
+                context.shadowBlur = 14;
+                context.shadowColor = 'rgba(142,255,233,.72)';
+                context.beginPath();
+                context.arc(spark.x, spark.y, 1.1 + spark.life * 1.8, 0, Math.PI * 2);
+                context.fill();
+            });
             context.globalCompositeOperation = 'source-over';
             requestAnimationFrame(drawParticles);
         }
 
         window.addEventListener('resize', resizeParticles, { passive: true });
         window.addEventListener('pointermove', event => {
+            if (!reducedMotion.matches && precisePointer.matches && lastPointer) {
+                const distance = Math.hypot(event.clientX - lastPointer.x, event.clientY - lastPointer.y);
+                const count = Math.min(4, Math.max(1, Math.round(distance / 18)));
+                for (let index = 0; index < count; index += 1) {
+                    const progress = (index + 1) / count;
+                    hoverTrail.push({
+                        x: lastPointer.x + (event.clientX - lastPointer.x) * progress,
+                        y: lastPointer.y + (event.clientY - lastPointer.y) * progress,
+                        vx: (Math.random() - .5) * 1.4,
+                        vy: (Math.random() - .5) * 1.4,
+                        life: .68 + Math.random() * .18,
+                    });
+                }
+                if (hoverTrail.length > 100) hoverTrail.splice(0, hoverTrail.length - 100);
+            }
+            lastPointer = { x: event.clientX, y: event.clientY };
             pointer.x = event.clientX;
             pointer.y = event.clientY;
         }, { passive: true });
@@ -517,10 +638,14 @@
                 const y = (event.clientY - bounds.top) / Math.max(1, bounds.height) - 0.5;
                 card.style.setProperty('--tilt-x', `${(-y * 4).toFixed(2)}deg`);
                 card.style.setProperty('--tilt-y', `${(x * 4).toFixed(2)}deg`);
+                card.style.setProperty('--card-pointer-x', `${((x + 0.5) * 100).toFixed(1)}%`);
+                card.style.setProperty('--card-pointer-y', `${((y + 0.5) * 100).toFixed(1)}%`);
             }, { passive: true });
             card.addEventListener('pointerleave', () => {
                 card.style.setProperty('--tilt-x', '0deg');
                 card.style.setProperty('--tilt-y', '0deg');
+                card.style.setProperty('--card-pointer-x', '50%');
+                card.style.setProperty('--card-pointer-y', '50%');
             });
         });
     }

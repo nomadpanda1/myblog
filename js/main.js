@@ -408,8 +408,8 @@ $('#switchmore').on('click', function () {
         $("#change1").html("哎呀，这都被你发现了（ 再点击一次可关闭 ）");
     } else {
         $('#container').attr('class', 'container');
-        $("#change").html("Hello&nbsp;World&nbsp;!");
-        $("#change1").html("把想法做成能用的东西，也记录沿途的折腾。");
+        $("#change").html("Build&nbsp;to&nbsp;Run");
+        $("#change1").html("在电流与代码之间，把复杂系统锻造成可运行的闭环。");
     }
 });
 
@@ -457,8 +457,8 @@ window.addEventListener('load', function () {
         if (window.innerWidth <= 990) {
             //移动端隐藏更多页面
             $('#container').attr('class', 'container');
-            $("#change").html("Hello&nbsp;World&nbsp;!");
-            $("#change1").html("把想法做成能用的东西，也记录沿途的折腾。");
+            $("#change").html("Build&nbsp;to&nbsp;Run");
+            $("#change1").html("在电流与代码之间，把复杂系统锻造成可运行的闭环。");
 
             //移动端隐藏弹窗页面
             $('#box').css("display", "none");

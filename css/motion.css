@@ -130,6 +130,45 @@ body.motion-enabled .motion-tilt {
     transition: transform 0.32s cubic-bezier(.2, .7, .2, 1), background-color .3s, border-color .3s, box-shadow .3s;
 }
 
+body.motion-enabled .message {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+body.motion-enabled .message::before {
+    content: '';
+    position: absolute;
+    inset: -45%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at var(--card-pointer-x, 50%) var(--card-pointer-y, 50%), rgb(142 255 233 / 28%) 0, rgb(142 255 233 / 9%) 13%, transparent 36%);
+    transition: opacity .28s ease;
+}
+
+body.motion-enabled .message:hover::before {
+    opacity: 1;
+}
+
+body.motion-enabled .message::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border: 1px solid transparent;
+    border-radius: inherit;
+    background: linear-gradient(120deg, rgb(142 255 233 / 35%), transparent 34%, transparent 70%, rgb(255 214 145 / 30%)) border-box;
+    mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: .35;
+}
+
+body.motion-enabled .message .des {
+    position: relative;
+    z-index: 1;
+}
+
 body.motion-enabled .motion-tilt:hover {
     --tilt-lift: -3px;
     box-shadow: 0 16px 34px rgb(0 0 0 / 24%), inset 0 0 0 1px rgb(255 255 255 / 7%);
