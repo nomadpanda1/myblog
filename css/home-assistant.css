@@ -1,0 +1,182 @@
+.home-assistant-launcher {
+    position: fixed;
+    right: 18px;
+    bottom: 116px;
+    z-index: 40;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    color: #071312;
+    border: 1px solid rgba(151, 255, 235, .7);
+    border-radius: 50%;
+    background: rgba(143, 255, 236, .88);
+    box-shadow: 0 0 26px rgba(99, 230, 190, .25), inset 0 0 0 4px rgba(255, 255, 255, .16);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.home-assistant-launcher:hover,
+.home-assistant-launcher:focus-visible {
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 0 34px rgba(99, 230, 190, .42), inset 0 0 0 4px rgba(255, 255, 255, .2);
+}
+
+.home-assistant-panel {
+    position: fixed;
+    right: 18px;
+    bottom: 166px;
+    z-index: 40;
+    width: min(360px, calc(100vw - 28px));
+    max-height: min(560px, calc(100vh - 190px));
+    display: grid;
+    grid-template-rows: auto auto minmax(140px, 1fr) auto;
+    overflow: hidden;
+    color: #e8f7f3;
+    border: 1px solid rgba(142, 255, 233, .26);
+    border-radius: 10px;
+    background: rgba(9, 17, 20, .92);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .38), 0 0 34px rgba(99, 230, 190, .1);
+    backdrop-filter: blur(18px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px) scale(.97);
+    transition: opacity .24s ease, transform .24s ease;
+}
+
+.home-assistant-panel.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.home-assistant-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 15px 12px;
+    border-bottom: 1px solid rgba(204, 255, 246, .1);
+}
+
+.home-assistant-header strong,
+.home-assistant-header span { display: block; }
+.home-assistant-header strong { color: #a1ffe8; font-size: .82rem; letter-spacing: .14em; }
+.home-assistant-header span { margin-top: 4px; color: rgba(220, 244, 239, .55); font-size: .68rem; }
+.home-assistant-header button { width: 30px; height: 30px; color: rgba(232, 247, 243, .72); border: 0; background: transparent; }
+
+.home-assistant-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px 0;
+}
+
+.home-assistant-prompts button {
+    padding: 6px 8px;
+    color: rgba(224, 247, 241, .72);
+    border: 1px solid rgba(142, 255, 233, .2);
+    border-radius: 4px;
+    background: rgba(142, 255, 233, .04);
+    font-size: .68rem;
+}
+
+.home-assistant-prompts button:hover { color: #e8fff8; border-color: rgba(142, 255, 233, .54); }
+
+.home-assistant-messages {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    overflow: auto;
+    padding: 12px;
+    font-size: .78rem;
+    line-height: 1.65;
+}
+
+.home-ai-message {
+    max-width: 92%;
+    padding: 9px 10px;
+    border: 1px solid rgba(213, 255, 247, .1);
+    border-radius: 7px;
+    white-space: pre-wrap;
+}
+
+.home-ai-message.is-assistant { align-self: flex-start; background: rgba(255, 255, 255, .065); }
+.home-ai-message.is-user { align-self: flex-end; color: #061311; background: rgba(143, 255, 236, .84); }
+.home-ai-message.is-pending { color: rgba(230, 252, 245, .56); }
+.home-ai-message.is-error { color: #ffd2c8; border-color: rgba(255, 145, 129, .32); }
+
+.home-ai-sources {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.home-ai-sources a {
+    max-width: 100%;
+    padding: 3px 6px;
+    overflow: hidden;
+    color: #98f4df;
+    border: 1px solid rgba(142, 255, 233, .18);
+    border-radius: 3px;
+    font-size: .64rem;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.home-assistant-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 38px;
+    gap: 8px;
+    padding: 10px 12px 12px;
+    border-top: 1px solid rgba(204, 255, 246, .1);
+}
+
+.home-assistant-form textarea {
+    min-height: 38px;
+    max-height: 120px;
+    padding: 8px;
+    resize: vertical;
+    color: #e8f7f3;
+    border: 1px solid rgba(213, 255, 247, .15);
+    border-radius: 5px;
+    outline: 0;
+    background: rgba(0, 0, 0, .18);
+    font: inherit;
+    font-size: .76rem;
+}
+
+.home-assistant-form textarea:focus { border-color: rgba(142, 255, 233, .58); }
+.home-assistant-form button { align-self: end; width: 38px; height: 38px; color: #061311; border: 0; border-radius: 5px; background: #8effe9; }
+.home-assistant-form button:disabled { opacity: .48; }
+
+#oml2d-stage,
+.oml2d-stage {
+    z-index: 35 !important;
+    left: 12px !important;
+    right: auto !important;
+    bottom: 96px !important;
+    width: 230px !important;
+    height: 350px !important;
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 110px);
+    touch-action: none;
+    user-select: none;
+    filter: drop-shadow(0 16px 24px rgba(0, 0, 0, .22));
+}
+
+body.home-live2d-off #oml2d-stage,
+body.home-live2d-off .oml2d-stage { display: none !important; }
+
+@media (max-width: 900px) {
+    #oml2d-stage,
+    .oml2d-stage { display: none !important; }
+    .home-assistant-launcher { right: 12px; bottom: 86px; }
+    .home-assistant-panel { right: 12px; bottom: 138px; max-height: calc(100vh - 160px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-assistant-panel,
+    .home-assistant-launcher { transition: none; }
+}

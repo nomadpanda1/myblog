@@ -23,6 +23,7 @@
     <link rel="stylesheet" type="text/css" href="./css/animation.css?v=20260815-12">
     <link rel="stylesheet" type="text/css" href="./css/motion.css?v=20260820-pixel-field-2">
     <link rel="stylesheet" type="text/css" href="./css/knowledge-map.css?v=20260816-19">
+    <link rel="stylesheet" type="text/css" href="./css/home-assistant.css?v=20260820-mailili-2">
     <link rel="icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
@@ -548,6 +549,28 @@
             <div id="lrc"></div>
         </footer>
     </section>
+    <div class="home-assistant" id="home-assistant" aria-label="主页 AI 助手">
+        <button class="home-assistant-launcher" id="home-ai-launcher" type="button" aria-label="打开主页 AI 助手" title="主页 AI 助手">
+            <i class="fa-solid fa-sparkles"></i>
+        </button>
+        <aside class="home-assistant-panel" id="home-ai-panel" aria-hidden="true">
+            <header class="home-assistant-header">
+                <div><strong>LYF AI</strong><span>主页与项目知识助手</span></div>
+                <button type="button" id="home-ai-close" aria-label="关闭主页 AI 助手" title="关闭"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="home-assistant-prompts" aria-label="建议问题">
+                <button type="button">介绍我的项目方向</button>
+                <button type="button">给主页一个优化建议</button>
+            </div>
+            <div class="home-assistant-messages" id="home-ai-messages" role="log" aria-live="polite">
+                <div class="home-ai-message is-assistant">我可以结合主页、Blog、项目工坊和简历资料，帮你梳理项目方向、内容结构与下一步计划。</div>
+            </div>
+            <form class="home-assistant-form" id="home-ai-form">
+                <textarea id="home-ai-input" rows="2" maxlength="500" placeholder="问我一个关于网站或项目的问题" aria-label="主页 AI 问题"></textarea>
+                <button type="submit" aria-label="发送" title="发送"><i class="fa-solid fa-arrow-up"></i></button>
+            </form>
+        </aside>
+    </div>
     <script>
         // 清理旧版离线缓存，避免发布后继续混用旧脚本和新页面。
         if ("serviceWorker" in navigator) {
@@ -570,6 +593,8 @@
     <script type="text/javascript" src="./js/set.js?v=20260819-2"></script>
     <script type="text/javascript" src="./js/time.js?v=20260815-15"></script>
     <script type="text/javascript" src="./js/dashboard.js?v=20260816-18"></script>
+    <script src="https://fastly.jsdelivr.net/npm/oh-my-live2d@0.19.3/dist/index.min.js" defer></script>
+    <script type="text/javascript" src="./js/home-assistant.js?v=20260820-mailili-2" defer></script>
     <script type="module" src="./js/three-runtime.js"></script>
     <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.0/js/bootstrap.min.js">

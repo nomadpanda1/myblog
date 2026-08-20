@@ -582,6 +582,7 @@
         const ripples = [];
         const sparks = [];
         let particles = [];
+        let orbitals = [];
         let width = 0;
         let height = 0;
         let lastFrame = 0;
@@ -595,22 +596,29 @@
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
             context.setTransform(ratio, 0, 0, ratio, 0, 0);
-            const count = reducedMotion.matches ? 520 : width < 720 ? 560 : 900;
+            const count = reducedMotion.matches ? 420 : width < 720 ? 620 : 980;
             particles = Array.from({ length: count }, (_, index) => {
                 const u = Math.random();
                 const v = Math.random();
                 const band = Math.sin(u * Math.PI * 2.6) * .5 + .5;
-                const spread = .18 + band * .28;
                 return {
-                    x: width * (.08 + u * .82),
-                    y: height * (.46 + (v - .5) * spread + Math.sin(u * 8) * .08),
+                    x: width * (.02 + u * .96),
+                    y: height * (.07 + v * .86),
                     phase: Math.random() * Math.PI * 2,
-                    speed: .25 + Math.random() * .75,
+                    speed: .8 + Math.random() * 1.35,
+                    vx: (Math.random() - .5) * (0.07 + band * .11),
+                    vy: (Math.random() - .5) * (0.05 + band * .08),
                     size: 1.35 + (index % 5) * .58,
                     alpha: .34 + band * .5 + Math.random() * .18,
                     warm: index % 13 === 0,
+                    shape: index % 7,
                 };
             });
+            orbitals = [
+                { cx: .52, cy: .48, rx: .23, ry: .055, depth: .15, rotation: -.18, angle: .4, speed: .48, color: '151,230,222' },
+                { cx: .52, cy: .48, rx: .2, ry: .09, depth: .21, rotation: .82, angle: 2.2, speed: -.39, color: '202,220,255' },
+                { cx: .52, cy: .48, rx: .16, ry: .035, depth: .1, rotation: 1.48, angle: 4.5, speed: .63, color: '255,218,158' },
+            ];
         }
 
         function draw(time) {
@@ -647,8 +655,55 @@
                 context.stroke();
             }
 
+            const centerX = width * .52 + (precisePointer.matches ? pointer.x / width - .5 : 0) * 22;
+            const centerY = height * .48 + (precisePointer.matches ? pointer.y / height - .5 : 0) * 18;
+            orbitals.forEach(orbit => {
+                orbit.angle += orbit.speed * .022;
+                const rx = Math.max(90, width * orbit.rx);
+                const ry = Math.max(24, height * orbit.ry);
+                const depth = Math.max(28, width * orbit.depth);
+                const cosRotation = Math.cos(orbit.rotation);
+                const sinRotation = Math.sin(orbit.rotation);
+                const project = angle => {
+                    const cosAngle = Math.cos(angle);
+                    const sinAngle = Math.sin(angle);
+                    const localX = cosAngle * rx;
+                    const localY = sinAngle * ry;
+                    const localZ = sinAngle * depth;
+                    return {
+                        x: centerX + localX * cosRotation - localY * sinRotation + localZ * .28,
+                        y: centerY + localX * sinRotation + localY * cosRotation - localZ * .16,
+                        z: localZ,
+                    };
+                };
+                context.save();
+                context.strokeStyle = `rgba(${orbit.color},.13)`;
+                context.lineWidth = 1;
+                context.beginPath();
+                for (let segment = 0; segment <= 72; segment += 1) {
+                    const point = project((segment / 72) * Math.PI * 2);
+                    if (segment === 0) context.moveTo(point.x, point.y);
+                    else context.lineTo(point.x, point.y);
+                }
+                context.stroke();
+                const atom = project(orbit.angle);
+                const atomSize = 2.5 + (atom.z / depth + 1) * 1.6;
+                const atomAlpha = .52 + (atom.z / depth + 1) * .2;
+                context.shadowBlur = 12;
+                context.shadowColor = `rgba(${orbit.color},.62)`;
+                context.fillStyle = `rgba(${orbit.color},${atomAlpha.toFixed(2)})`;
+                context.fillRect(atom.x - atomSize / 2, atom.y - atomSize / 2, atomSize, atomSize);
+                context.restore();
+            });
+
             const pointerStrength = precisePointer.matches ? 1 : 0;
             particles.forEach((particle, index) => {
+                particle.x += particle.vx * particle.speed * (1 + audioEnergy * 1.8);
+                particle.y += particle.vy * particle.speed * (1 + audioEnergy * 1.8);
+                if (particle.x < -20) particle.x = width + 20;
+                if (particle.x > width + 20) particle.x = -20;
+                if (particle.y < -20) particle.y = height + 20;
+                if (particle.y > height + 20) particle.y = -20;
                 const wave = Math.sin(time * .00038 * particle.speed + particle.phase);
                 const drift = Math.cos(time * .00024 * particle.speed + particle.phase * .7);
                 let x = particle.x + wave * 13;
@@ -665,7 +720,28 @@
                 const color = particle.warm ? '255,218,158' : '198,218,255';
                 context.fillStyle = `rgba(${color},${Math.max(.04, particle.alpha * shimmer)})`;
                 const size = particle.size + audioEnergy * .8;
-                context.fillRect(x, y, size, size);
+                context.save();
+                context.translate(x, y);
+                context.rotate(time * .00012 * particle.speed + particle.phase);
+                if (particle.shape === 1 || particle.shape === 2) {
+                    context.beginPath();
+                    context.moveTo(0, -size);
+                    context.lineTo(size, size);
+                    context.lineTo(-size, size);
+                    context.closePath();
+                    context.fill();
+                } else if (particle.shape === 3) {
+                    context.beginPath();
+                    context.moveTo(0, -size);
+                    context.lineTo(size, 0);
+                    context.lineTo(0, size);
+                    context.lineTo(-size, 0);
+                    context.closePath();
+                    context.fill();
+                } else {
+                    context.fillRect(-size * .5, -size * .5, size, size);
+                }
+                context.restore();
                 if (index % 29 === 0) {
                     context.fillStyle = `rgba(${color},${particle.alpha * .28})`;
                     context.fillRect(x - size * 1.8, y - size * 1.8, size * 4.6, size * 4.6);
