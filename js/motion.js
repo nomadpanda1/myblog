@@ -30,7 +30,7 @@
 
         const constellation = new THREE.Group();
         scene.add(constellation);
-        const count = reducedMotion.matches ? 46 : window.innerWidth < 720 ? 86 : 138;
+        const count = reducedMotion.matches ? 72 : window.innerWidth < 720 ? 96 : 162;
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
         const seeds = [];
@@ -50,9 +50,9 @@
         pointGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         pointGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         const pointMaterial = new THREE.PointsMaterial({
-            size: .29,
+            size: reducedMotion.matches ? .42 : .34,
             transparent: true,
-            opacity: .88,
+            opacity: .96,
             vertexColors: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
@@ -61,7 +61,7 @@
         const points = new THREE.Points(pointGeometry, pointMaterial);
         constellation.add(points);
 
-        const fieldCount = reducedMotion.matches ? 42 : window.innerWidth < 720 ? 150 : 320;
+        const fieldCount = reducedMotion.matches ? 110 : window.innerWidth < 720 ? 180 : 360;
         const fieldPositions = new Float32Array(fieldCount * 3);
         const fieldColors = new Float32Array(fieldCount * 3);
         const fieldVelocity = [];
@@ -83,9 +83,9 @@
         fieldGeometry.setAttribute('position', new THREE.BufferAttribute(fieldPositions, 3));
         fieldGeometry.setAttribute('color', new THREE.BufferAttribute(fieldColors, 3));
         const fieldMaterial = new THREE.PointsMaterial({
-            size: .34,
+            size: reducedMotion.matches ? .5 : .38,
             transparent: true,
-            opacity: .6,
+            opacity: .78,
             vertexColors: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
@@ -111,7 +111,7 @@
         const linkMaterial = new THREE.LineBasicMaterial({
             color: 0x72d8cb,
             transparent: true,
-            opacity: .22,
+            opacity: .34,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
         });
@@ -183,7 +183,7 @@
         meteor.visible = !reducedMotion.matches;
         constellation.add(meteor);
         const ripples = [];
-        const trailCapacity = reducedMotion.matches || !precisePointer.matches ? 0 : 84;
+        const trailCapacity = !precisePointer.matches ? 0 : reducedMotion.matches ? 36 : 84;
         const trailPositions = trailCapacity ? new Float32Array(trailCapacity * 3) : null;
         const trailColors = trailCapacity ? new Float32Array(trailCapacity * 3) : null;
         const trailParticles = trailCapacity ? Array.from({ length: trailCapacity }, () => ({ life: 0, vx: 0, vy: 0, vz: 0 })) : null;
@@ -545,7 +545,7 @@
 
         window.addEventListener('resize', resizeParticles, { passive: true });
         window.addEventListener('pointermove', event => {
-            if (!reducedMotion.matches && precisePointer.matches && lastPointer) {
+            if (precisePointer.matches && lastPointer) {
                 const distance = Math.hypot(event.clientX - lastPointer.x, event.clientY - lastPointer.y);
                 const count = Math.min(4, Math.max(1, Math.round(distance / 18)));
                 for (let index = 0; index < count; index += 1) {
@@ -622,7 +622,7 @@
         scheduleScene();
     }
 
-    if (!reducedMotion.matches && precisePointer.matches) {
+    if (precisePointer.matches) {
         window.addEventListener('pointermove', event => {
             targetX = (event.clientX / Math.max(1, window.innerWidth) - 0.5) * 2;
             targetY = (event.clientY / Math.max(1, window.innerHeight) - 0.5) * 2;

@@ -41,7 +41,8 @@ body.addEventListener('mousemove', (e) => {
 window.addEventListener('load', function () {
 
     //载入动画
-    $('#loading-box').attr('class', 'loaded');
+    // Let the apple complete its fall before the loading layer expands away.
+    setTimeout(() => $('#loading-box').attr('class', 'loaded'), 1350);
     $('#bg').css("cssText", "transform: scale(1);filter: blur(0px);transition: ease 1.5s;");
     $('.cover').css("cssText", "opacity: 1;transition: ease 1.5s;");
     $('#section').css("cssText", "transform: scale(1) !important;opacity: 1 !important;filter: blur(0px) !important");

@@ -16,15 +16,18 @@
 #home-particles {
     position: fixed;
     inset: 0;
-    z-index: 4;
+    z-index: 999997;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    opacity: calc(.8 + var(--ambient-energy) * .2);
+    opacity: calc(.95 + var(--ambient-energy) * .05);
     mix-blend-mode: screen;
     filter: saturate(1.42) contrast(1.14) brightness(1.08);
     transform: translateZ(0);
 }
+
+body.motion-ready #home-particles { z-index: 4; }
+body:not(.motion-ready) #home-particles { z-index: 999997; }
 
 body #bg {
     filter: brightness(calc(var(--ambient-brightness) * var(--phase-brightness))) saturate(calc(var(--ambient-saturation) * var(--phase-saturation))) contrast(calc(var(--ambient-contrast) * var(--phase-contrast))) !important;
@@ -261,7 +264,7 @@ body.motion-enabled .music-stage.is-playing {
 
 @media (max-width: 720px), (hover: none), (pointer: coarse) {
     #home-particles {
-        opacity: .72;
+        opacity: .86;
     }
     body.motion-enabled #bg {
         transform: scale(1.035) !important;
@@ -283,7 +286,7 @@ body.motion-enabled .music-stage.is-playing {
 
 @media (prefers-reduced-motion: reduce) {
     #home-particles {
-        opacity: .62;
+        opacity: .9;
     }
     body.motion-enabled #bg,
     body.motion-enabled #main,
