@@ -641,7 +641,8 @@
 
         function draw(time) {
             requestAnimationFrame(draw);
-            if (document.hidden || body.classList.contains('knowledge-map-open') || time - lastFrame < 32) return;
+            const frameInterval = innerWidth < 720 ? 24 : 16;
+            if (document.hidden || body.classList.contains('knowledge-map-open') || time - lastFrame < frameInterval) return;
             lastFrame = time;
             context.clearRect(0, 0, width, height);
             const pointerEnabled = precisePointer.matches;

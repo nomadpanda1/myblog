@@ -34,7 +34,7 @@
     color: #e8f7f3;
     border: 1px solid rgba(142, 255, 233, .26);
     border-radius: 10px;
-    background: rgba(9, 17, 20, .68);
+    background: rgba(9, 17, 20, .38);
     box-shadow: 0 24px 70px rgba(0, 0, 0, .38), 0 0 34px rgba(99, 230, 190, .1);
     backdrop-filter: blur(18px);
     opacity: 0;
@@ -103,7 +103,7 @@
     white-space: pre-wrap;
 }
 
-.home-ai-message.is-assistant { align-self: flex-start; background: rgba(255, 255, 255, .065); }
+.home-ai-message.is-assistant { align-self: flex-start; background: rgba(255, 255, 255, .035); }
 .home-ai-message.is-user { align-self: flex-end; color: #061311; background: rgba(143, 255, 236, .84); }
 .home-ai-message.is-pending { color: rgba(230, 252, 245, .56); }
 .home-ai-message.is-error { color: #ffd2c8; border-color: rgba(255, 145, 129, .32); }
@@ -186,7 +186,9 @@
 }
 
 body.home-live2d-off #oml2d-stage,
-body.home-live2d-off .oml2d-stage { display: none !important; }
+body.home-live2d-off .oml2d-stage,
+body.home-live2d-off #oml2d-tips,
+body.home-live2d-off .oml2d-tips { display: none !important; }
 
 @media (max-width: 900px) {
     #oml2d-stage,

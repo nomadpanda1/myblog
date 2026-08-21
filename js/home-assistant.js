@@ -6,6 +6,7 @@
     const CLIENT_KEY = 'lyf_home_ai_client_id';
     const POSITION_KEY = 'lyf_home_live2d_position_v1';
     const VOICE_KEY = 'lyf_home_live2d_voice_v1';
+    const MODEL_VISIBLE_KEY = 'lyf_home_live2d_visible_v1';
     const state = { live2d: null, drag: null, touchReady: false, voiceAudio: null, voiceUrl: '' };
 
     function clientId() {
@@ -24,6 +25,10 @@
         return localStorage.getItem(VOICE_KEY) !== 'off';
     }
 
+    function modelVisible() {
+        return localStorage.getItem(MODEL_VISIBLE_KEY) !== 'off';
+    }
+
     function updateVoiceButton() {
         const button = document.getElementById('home-ai-voice');
         if (!button) return;
@@ -31,6 +36,17 @@
         button.classList.toggle('is-muted', !enabled);
         button.setAttribute('aria-label', enabled ? '关闭仙狐语音' : '开启仙狐语音');
         button.innerHTML = `<i class="fa-solid ${enabled ? 'fa-volume-high' : 'fa-volume-xmark'}"></i>`;
+    }
+
+    function updateModelButton() {
+        const button = document.getElementById('home-ai-model');
+        const visible = modelVisible();
+        document.body.classList.toggle('home-live2d-off', !visible);
+        if (!button) return;
+        button.classList.toggle('is-muted', !visible);
+        button.setAttribute('aria-label', visible ? '隐藏 Live2D 模型' : '显示 Live2D 模型');
+        button.title = visible ? '隐藏 Live2D' : '显示 Live2D';
+        button.innerHTML = `<i class="fa-solid ${visible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
     }
 
     function browserSpeak(text) {
@@ -174,7 +190,7 @@
                     name: 'Mailili',
                     path: MODEL_PATH,
                     position: [45, 44],
-                    scale: .055,
+                    scale: .048,
                     stageStyle: { width: 320, height: 440, left: '12px', right: 'auto', bottom: '154px' },
                 }],
                 tips: {
@@ -265,6 +281,10 @@
         if (!launcher || !panel || !form) return;
         launcher.addEventListener('click', () => panel.classList.contains('is-open') ? closePanel() : openPanel());
         document.getElementById('home-ai-close').addEventListener('click', closePanel);
+        document.getElementById('home-ai-model').addEventListener('click', () => {
+            localStorage.setItem(MODEL_VISIBLE_KEY, modelVisible() ? 'off' : 'on');
+            updateModelButton();
+        });
         document.getElementById('home-ai-voice').addEventListener('click', () => {
             const enabled = !voiceEnabled();
             localStorage.setItem(VOICE_KEY, enabled ? 'on' : 'off');
@@ -299,6 +319,7 @@
             if (event.key === 'Escape') closePanel();
         });
         updateVoiceButton();
+        updateModelButton();
         initLive2d();
     }
 
