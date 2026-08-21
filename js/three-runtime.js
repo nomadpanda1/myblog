@@ -7,4 +7,4 @@ window.THREE = { ...THREE_MODULE, OrbitControls };
 window.d3 = D3_MODULE;
 
 await import('./knowledge-map.js');
-await import('./motion.js?v=20260820-pixel-field-3');
+await import('./motion.js?v=20260821-constellation-1');

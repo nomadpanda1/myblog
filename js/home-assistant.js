@@ -5,7 +5,8 @@
     const MODEL_PATH = '/img/live2d/mailili/mailili.model3.json';
     const CLIENT_KEY = 'lyf_home_ai_client_id';
     const POSITION_KEY = 'lyf_home_live2d_position_v1';
-    const state = { live2d: null, drag: null, touchReady: false };
+    const VOICE_KEY = 'lyf_home_live2d_voice_v1';
+    const state = { live2d: null, drag: null, touchReady: false, voiceAudio: null, voiceUrl: '' };
 
     function clientId() {
         const saved = localStorage.getItem(CLIENT_KEY);
@@ -19,29 +20,88 @@
         return document.querySelector('#oml2d-stage, .oml2d-stage');
     }
 
-    function showBubble(message) {
+    function voiceEnabled() {
+        return localStorage.getItem(VOICE_KEY) !== 'off';
+    }
+
+    function updateVoiceButton() {
+        const button = document.getElementById('home-ai-voice');
+        if (!button) return;
+        const enabled = voiceEnabled();
+        button.classList.toggle('is-muted', !enabled);
+        button.setAttribute('aria-label', enabled ? '关闭仙狐语音' : '开启仙狐语音');
+        button.innerHTML = `<i class="fa-solid ${enabled ? 'fa-volume-high' : 'fa-volume-xmark'}"></i>`;
+    }
+
+    function browserSpeak(text) {
+        if (!('speechSynthesis' in window)) return;
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 1.07;
+        utterance.pitch = 1.25;
+        const voices = speechSynthesis.getVoices();
+        const preferred = ['Xiaoyi', 'Xiaoxiao', '晓伊', '晓晓', 'Yaoyao', '瑶瑶'];
+        utterance.voice = voices.find(voice => /^zh/i.test(voice.lang) && preferred.some(name => voice.name.includes(name)))
+            || voices.find(voice => /^zh/i.test(voice.lang) && /female|woman|girl|女/i.test(voice.name))
+            || voices.find(voice => /^zh/i.test(voice.lang));
+        speechSynthesis.speak(utterance);
+    }
+
+    async function speak(message) {
+        if (!voiceEnabled()) return;
+        const text = String(message).replace(/[*#`]/g, '').slice(0, 300);
+        try {
+            state.voiceAudio?.pause();
+            if (state.voiceUrl) URL.revokeObjectURL(state.voiceUrl);
+            const response = await fetch(`${API_ROOT}/blog/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text }),
+                signal: AbortSignal.timeout(26000),
+            });
+            if (!response.ok) throw new Error(`TTS returned ${response.status}`);
+            const voiceUrl = URL.createObjectURL(await response.blob());
+            state.voiceUrl = voiceUrl;
+            state.voiceAudio = new Audio(voiceUrl);
+            state.voiceAudio.volume = .9;
+            state.voiceAudio.addEventListener('ended', () => {
+                URL.revokeObjectURL(voiceUrl);
+                if (state.voiceUrl === voiceUrl) state.voiceUrl = '';
+            }, { once: true });
+            await state.voiceAudio.play();
+        } catch (error) {
+            console.warn('Home Live2D voice unavailable, using browser voice', error);
+            browserSpeak(text);
+        }
+    }
+
+    function showBubble(message, shouldSpeak = false) {
         try {
             state.live2d?.tipsMessage?.(String(message).slice(0, 120));
         } catch (error) {
             console.warn('Home Live2D bubble unavailable', error);
         }
+        if (shouldSpeak) speak(message);
     }
 
     function readPosition() {
         try {
-            return JSON.parse(localStorage.getItem(POSITION_KEY)) || { left: 12, bottom: 96 };
+            return JSON.parse(localStorage.getItem(POSITION_KEY)) || { left: 12, bottom: 154 };
         } catch (error) {
-            return { left: 12, bottom: 96 };
+            return { left: 12, bottom: 154 };
         }
     }
 
     function applyPosition(position = readPosition(), persist = false) {
         const node = stage();
         if (!node) return null;
-        const width = node.offsetWidth || 230;
-        const height = node.offsetHeight || 350;
-        const left = Math.round(Math.max(8, Math.min(Number(position.left) || 12, innerWidth - width - 8)));
-        const bottom = Math.round(Math.max(84, Math.min(Number(position.bottom) || 96, innerHeight - height - 8)));
+        const width = node.offsetWidth || 320;
+        const height = node.offsetHeight || 440;
+        const requestedLeft = Number(position.left);
+        const requestedBottom = Number(position.bottom);
+        const left = Math.round(Math.max(0, Math.min(Number.isFinite(requestedLeft) ? requestedLeft : 12, innerWidth - width)));
+        const bottom = Math.round(Math.max(0, Math.min(Number.isFinite(requestedBottom) ? requestedBottom : 154, innerHeight - height)));
         node.style.setProperty('left', `${left}px`, 'important');
         node.style.setProperty('right', 'auto', 'important');
         node.style.setProperty('bottom', `${bottom}px`, 'important');
@@ -65,7 +125,7 @@
 
         node.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
-            const position = applyPosition() || { left: 12, bottom: 96 };
+            const position = applyPosition() || { left: 12, bottom: 154 };
             state.drag = {
                 id: event.pointerId,
                 x: event.clientX,
@@ -94,7 +154,7 @@
                 applyPosition({ left: Number(node.dataset.homeLeft), bottom: Number(node.dataset.homeBottom) }, true);
             } else {
                 openPanel();
-                showBubble('我在。可以问我主页、文章、项目，或者让我给一个下一步建议。');
+                showBubble('我在呀。可以问我主页、文章、项目，或者让我给一个下一步建议。', true);
             }
         };
         node.addEventListener('pointerup', finish);
@@ -113,12 +173,12 @@
                 models: [{
                     name: 'Mailili',
                     path: MODEL_PATH,
-                    position: [76, 44],
-                    scale: .065,
-                    stageStyle: { width: 230, height: 350, left: '12px', right: 'auto', bottom: '96px' },
+                    position: [45, 44],
+                    scale: .055,
+                    stageStyle: { width: 320, height: 440, left: '12px', right: 'auto', bottom: '154px' },
                 }],
                 tips: {
-                    style: { width: '220px', minHeight: '54px', padding: '11px', fontSize: '13px', lineHeight: '1.55' },
+                    style: { width: '196px', minHeight: '52px', padding: '10px', fontSize: '12px', lineHeight: '1.5' },
                     message: ['主页与各个项目的资料已经连接。', '可以拖动我，也可以点我打开 AI 助手。'],
                 },
             });
@@ -187,7 +247,7 @@
             pending.remove();
             const reply = String(data.reply || '').trim();
             appendMessage('assistant', reply, Array.isArray(data.knowledge_sources) ? data.knowledge_sources : []);
-            showBubble(reply);
+            showBubble(reply, true);
         } catch (error) {
             pending.textContent = error.message || '知识服务暂时不可用';
             pending.classList.remove('is-pending');
@@ -205,6 +265,16 @@
         if (!launcher || !panel || !form) return;
         launcher.addEventListener('click', () => panel.classList.contains('is-open') ? closePanel() : openPanel());
         document.getElementById('home-ai-close').addEventListener('click', closePanel);
+        document.getElementById('home-ai-voice').addEventListener('click', () => {
+            const enabled = !voiceEnabled();
+            localStorage.setItem(VOICE_KEY, enabled ? 'on' : 'off');
+            if (!enabled) {
+                state.voiceAudio?.pause();
+                if ('speechSynthesis' in window) speechSynthesis.cancel();
+            }
+            updateVoiceButton();
+            showBubble(enabled ? '语音打开啦，之后的回答我会念给你听。' : '语音已经安静下来啦。', enabled);
+        });
         document.querySelectorAll('.home-assistant-prompts button').forEach(button => {
             button.addEventListener('click', () => {
                 openPanel();
@@ -228,6 +298,7 @@
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') closePanel();
         });
+        updateVoiceButton();
         initLive2d();
     }
 

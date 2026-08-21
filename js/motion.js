@@ -574,217 +574,158 @@
     function initPixelField() {
         const canvas = document.createElement('canvas');
         canvas.id = 'home-particles';
-        canvas.dataset.renderer = 'pixel-field';
+        canvas.dataset.renderer = 'constellation-field';
         canvas.setAttribute('aria-hidden', 'true');
         body.insertAdjacentElement('afterbegin', canvas);
         const context = canvas.getContext('2d', { alpha: true });
         const pointer = { x: -1000, y: -1000 };
         const ripples = [];
         const sparks = [];
-        let particles = [];
+        let points = [];
         let orbitals = [];
         let width = 0;
         let height = 0;
         let lastFrame = 0;
 
         function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            const ratio = Math.min(window.devicePixelRatio || 1, 1.25);
+            width = innerWidth;
+            height = innerHeight;
+            const ratio = Math.min(devicePixelRatio || 1, 1.15);
             canvas.width = Math.round(width * ratio);
             canvas.height = Math.round(height * ratio);
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
             context.setTransform(ratio, 0, 0, ratio, 0, 0);
-            const count = reducedMotion.matches ? 420 : width < 720 ? 620 : 980;
-            particles = Array.from({ length: count }, (_, index) => {
-                const u = Math.random();
-                const v = Math.random();
-                const band = Math.sin(u * Math.PI * 2.6) * .5 + .5;
-                return {
-                    x: width * (.02 + u * .96),
-                    y: height * (.07 + v * .86),
-                    phase: Math.random() * Math.PI * 2,
-                    speed: .8 + Math.random() * 1.35,
-                    vx: (Math.random() - .5) * (0.07 + band * .11),
-                    vy: (Math.random() - .5) * (0.05 + band * .08),
-                    size: 1.35 + (index % 5) * .58,
-                    alpha: .34 + band * .5 + Math.random() * .18,
-                    warm: index % 13 === 0,
-                    shape: index % 7,
-                };
-            });
+            const target = Math.round(width * height / 18500);
+            const count = reducedMotion.matches
+                ? Math.min(58, Math.max(38, Math.round(target * .7)))
+                : Math.min(108, Math.max(54, target));
+            points = Array.from({ length: count }, (_, index) => ({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: ((index * 17) % 11 - 5) * .014,
+                vy: ((index * 23) % 13 - 6) * .012,
+                r: 1.2 + (index % 4) * .42,
+                phase: Math.random() * Math.PI * 2,
+                shape: index % 5,
+                warm: index % 6 === 0,
+            }));
             orbitals = [
-                { cx: .52, cy: .48, rx: .23, ry: .055, depth: .15, rotation: -.18, angle: .4, speed: .48, color: '151,230,222' },
-                { cx: .52, cy: .48, rx: .2, ry: .09, depth: .21, rotation: .82, angle: 2.2, speed: -.39, color: '202,220,255' },
-                { cx: .52, cy: .48, rx: .16, ry: .035, depth: .1, rotation: 1.48, angle: 4.5, speed: .63, color: '255,218,158' },
+                { x: width * .27, y: height * .29, rx: Math.max(52, width * .09), ry: 16, tilt: -.28, angle: .2, speed: .55, color: '118,222,204' },
+                { x: width * .75, y: height * .69, rx: Math.max(48, width * .085), ry: 14, tilt: .65, angle: 2.5, speed: -.43, color: '255,202,121' },
             ];
+        }
+
+        function drawShape(point, x, y, size, time) {
+            const color = point.warm ? '255,202,121' : '142,220,255';
+            context.fillStyle = `rgba(${color},${.38 + Math.sin(time * .001 + point.phase) * .12})`;
+            if (point.shape === 0) {
+                context.fillRect(x - size * .5, y - size * .5, size, size);
+            } else if (point.shape === 1 || point.shape === 2) {
+                context.beginPath();
+                context.moveTo(x, y - size);
+                context.lineTo(x + size, y + size);
+                context.lineTo(x - size, y + size);
+                context.closePath();
+                context.fill();
+            } else {
+                context.beginPath();
+                context.moveTo(x, y - size);
+                context.lineTo(x + size, y);
+                context.lineTo(x, y + size);
+                context.lineTo(x - size, y);
+                context.closePath();
+                context.fill();
+            }
         }
 
         function draw(time) {
             requestAnimationFrame(draw);
-            if (document.hidden || body.classList.contains('knowledge-map-open')) return;
-            if (time - lastFrame < 20) return;
+            if (document.hidden || body.classList.contains('knowledge-map-open') || time - lastFrame < 32) return;
             lastFrame = time;
             context.clearRect(0, 0, width, height);
-            context.globalCompositeOperation = 'screen';
-
-            const light = (x, y, radius, color, alpha) => {
-                const gradient = context.createRadialGradient(x, y, 0, x, y, radius);
-                gradient.addColorStop(0, `rgba(${color},${alpha})`);
-                gradient.addColorStop(1, `rgba(${color},0)`);
-                context.fillStyle = gradient;
-                context.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-            };
-            light(width * .18, height * .08, Math.max(180, width * .24), '214,231,255', .12);
-            light(width * .78, height * .3, Math.max(160, width * .22), '121,163,226', .1);
-            light(width * .63, height * .82, Math.max(180, width * .3), '255,218,158', .07);
-
-            context.strokeStyle = 'rgba(190,213,248,.045)';
-            context.lineWidth = 1;
-            for (let x = 0; x < width; x += 92) {
-                context.beginPath();
-                context.moveTo(x, 0);
-                context.lineTo(x, height);
-                context.stroke();
-            }
-            for (let y = 0; y < height; y += 92) {
-                context.beginPath();
-                context.moveTo(0, y);
-                context.lineTo(width, y);
-                context.stroke();
-            }
-
-            const centerX = width * .52 + (precisePointer.matches ? pointer.x / width - .5 : 0) * 22;
-            const centerY = height * .48 + (precisePointer.matches ? pointer.y / height - .5 : 0) * 18;
-            orbitals.forEach(orbit => {
-                orbit.angle += orbit.speed * .022;
-                const rx = Math.max(90, width * orbit.rx);
-                const ry = Math.max(24, height * orbit.ry);
-                const depth = Math.max(28, width * orbit.depth);
-                const cosRotation = Math.cos(orbit.rotation);
-                const sinRotation = Math.sin(orbit.rotation);
-                const project = angle => {
-                    const cosAngle = Math.cos(angle);
-                    const sinAngle = Math.sin(angle);
-                    const localX = cosAngle * rx;
-                    const localY = sinAngle * ry;
-                    const localZ = sinAngle * depth;
-                    return {
-                        x: centerX + localX * cosRotation - localY * sinRotation + localZ * .28,
-                        y: centerY + localX * sinRotation + localY * cosRotation - localZ * .16,
-                        z: localZ,
-                    };
-                };
-                context.save();
-                context.strokeStyle = `rgba(${orbit.color},.13)`;
-                context.lineWidth = 1;
-                context.beginPath();
-                for (let segment = 0; segment <= 72; segment += 1) {
-                    const point = project((segment / 72) * Math.PI * 2);
-                    if (segment === 0) context.moveTo(point.x, point.y);
-                    else context.lineTo(point.x, point.y);
-                }
-                context.stroke();
-                const atom = project(orbit.angle);
-                const atomSize = 2.5 + (atom.z / depth + 1) * 1.6;
-                const atomAlpha = .52 + (atom.z / depth + 1) * .2;
-                context.shadowBlur = 12;
-                context.shadowColor = `rgba(${orbit.color},.62)`;
-                context.fillStyle = `rgba(${orbit.color},${atomAlpha.toFixed(2)})`;
-                context.fillRect(atom.x - atomSize / 2, atom.y - atomSize / 2, atomSize, atomSize);
-                context.restore();
-            });
-
-            const pointerStrength = precisePointer.matches ? 1 : 0;
-            particles.forEach((particle, index) => {
-                particle.x += particle.vx * particle.speed * (1 + audioEnergy * 1.8);
-                particle.y += particle.vy * particle.speed * (1 + audioEnergy * 1.8);
-                if (particle.x < -20) particle.x = width + 20;
-                if (particle.x > width + 20) particle.x = -20;
-                if (particle.y < -20) particle.y = height + 20;
-                if (particle.y > height + 20) particle.y = -20;
-                const wave = Math.sin(time * .00038 * particle.speed + particle.phase);
-                const drift = Math.cos(time * .00024 * particle.speed + particle.phase * .7);
-                let x = particle.x + wave * 13;
-                let y = particle.y + drift * 8;
+            const pointerEnabled = precisePointer.matches;
+            points.forEach((point, index) => {
+                point.x = (point.x + point.vx + width) % width;
+                point.y = (point.y + point.vy + height) % height;
+                const waveX = Math.sin(time * .00022 + point.phase) * 7;
+                const waveY = Math.cos(time * .00018 + point.phase) * 5;
+                let x = point.x + waveX;
+                let y = point.y + waveY;
                 const dx = x - pointer.x;
                 const dy = y - pointer.y;
                 const distance = Math.hypot(dx, dy);
-                if (pointerStrength && distance < 170 && distance > 0) {
-                    const force = (1 - distance / 170) * 18;
+                if (pointerEnabled && distance > 0 && distance < 120) {
+                    const force = (1 - distance / 120) * 10;
                     x += dx / distance * force;
                     y += dy / distance * force;
                 }
-                const shimmer = .78 + Math.sin(time * .0014 + particle.phase) * .22;
-                const color = particle.warm ? '255,218,158' : '198,218,255';
-                context.fillStyle = `rgba(${color},${Math.max(.04, particle.alpha * shimmer)})`;
-                const size = particle.size + audioEnergy * .8;
-                context.save();
-                context.translate(x, y);
-                context.rotate(time * .00012 * particle.speed + particle.phase);
-                if (particle.shape === 1 || particle.shape === 2) {
-                    context.beginPath();
-                    context.moveTo(0, -size);
-                    context.lineTo(size, size);
-                    context.lineTo(-size, size);
-                    context.closePath();
-                    context.fill();
-                } else if (particle.shape === 3) {
-                    context.beginPath();
-                    context.moveTo(0, -size);
-                    context.lineTo(size, 0);
-                    context.lineTo(0, size);
-                    context.lineTo(-size, 0);
-                    context.closePath();
-                    context.fill();
-                } else {
-                    context.fillRect(-size * .5, -size * .5, size, size);
+                for (let sibling = index + 1; sibling < Math.min(points.length, index + 9); sibling += 1) {
+                    const other = points[sibling];
+                    const otherX = other.x + Math.sin(time * .00022 + other.phase) * 7;
+                    const otherY = other.y + Math.cos(time * .00018 + other.phase) * 5;
+                    const lineDistance = Math.hypot(x - otherX, y - otherY);
+                    if (lineDistance < 138) {
+                        context.strokeStyle = `rgba(87,189,205,${(1 - lineDistance / 138) * .24})`;
+                        context.lineWidth = .7;
+                        context.beginPath();
+                        context.moveTo(x, y);
+                        context.lineTo(otherX, otherY);
+                        context.stroke();
+                    }
                 }
-                context.restore();
-                if (index % 29 === 0) {
-                    context.fillStyle = `rgba(${color},${particle.alpha * .28})`;
-                    context.fillRect(x - size * 1.8, y - size * 1.8, size * 4.6, size * 4.6);
-                }
+                drawShape(point, x, y, point.r, time);
             });
-
+            orbitals.forEach(orbit => {
+                orbit.angle += orbit.speed * .024;
+                context.save();
+                context.translate(orbit.x, orbit.y);
+                context.rotate(orbit.tilt);
+                context.strokeStyle = `rgba(${orbit.color},.2)`;
+                context.lineWidth = .8;
+                context.beginPath();
+                context.ellipse(0, 0, orbit.rx, orbit.ry, 0, 0, Math.PI * 2);
+                context.stroke();
+                const ex = Math.cos(orbit.angle) * orbit.rx;
+                const ey = Math.sin(orbit.angle) * orbit.ry;
+                context.fillStyle = `rgba(${orbit.color},.78)`;
+                context.fillRect(ex - 2, ey - 2, 4, 4);
+                context.restore();
+            });
             ripples.forEach(ripple => {
-                ripple.radius += 4;
-                ripple.alpha *= .92;
-                context.strokeStyle = `rgba(170,226,255,${ripple.alpha})`;
-                context.lineWidth = 1.5;
+                ripple.radius += 3;
+                ripple.alpha *= .9;
+                context.strokeStyle = `rgba(171,235,255,${ripple.alpha})`;
                 context.strokeRect(ripple.x - ripple.radius, ripple.y - ripple.radius, ripple.radius * 2, ripple.radius * 2);
             });
             while (ripples.length && ripples[0].alpha < .02) ripples.shift();
-
             sparks.forEach(spark => {
-                spark.life -= .035;
+                spark.life -= .05;
                 spark.x += spark.vx;
                 spark.y += spark.vy;
-                context.fillStyle = `rgba(255,218,158,${spark.life})`;
+                context.fillStyle = `rgba(255,202,121,${spark.life})`;
                 context.fillRect(spark.x, spark.y, 2, 2);
             });
             while (sparks.length && sparks[0].life <= 0) sparks.shift();
-            context.globalCompositeOperation = 'source-over';
         }
 
-        window.addEventListener('resize', resize, { passive: true });
-        window.addEventListener('pointermove', event => {
+        addEventListener('resize', resize, { passive: true });
+        reducedMotion.addEventListener?.('change', resize);
+        addEventListener('pointermove', event => {
             if (precisePointer.matches && pointer.x > -500) {
                 const distance = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y);
-                const count = Math.min(3, Math.max(1, Math.round(distance / 30)));
+                const count = Math.min(2, Math.max(1, Math.round(distance / 38)));
                 for (let index = 0; index < count; index += 1) {
-                    sparks.push({ x: event.clientX, y: event.clientY, vx: (Math.random() - .5) * 1.6, vy: (Math.random() - .5) * 1.6, life: .7 });
+                    sparks.push({ x: event.clientX, y: event.clientY, vx: (Math.random() - .5) * 1.2, vy: (Math.random() - .5) * 1.2, life: .65 });
                 }
-                if (sparks.length > 80) sparks.splice(0, sparks.length - 80);
+                if (sparks.length > 50) sparks.splice(0, sparks.length - 50);
             }
             pointer.x = event.clientX;
             pointer.y = event.clientY;
         }, { passive: true });
-        window.addEventListener('pointerdown', event => {
-            canvas.dataset.lastPulse = String(Date.now());
-            ripples.push({ x: event.clientX, y: event.clientY, radius: 10, alpha: .7 });
-            if (ripples.length > 5) ripples.shift();
+        addEventListener('pointerdown', event => {
+            ripples.push({ x: event.clientX, y: event.clientY, radius: 8, alpha: .62 });
+            if (ripples.length > 4) ripples.shift();
         }, { passive: true });
         resize();
         draw(performance.now());
