@@ -7,7 +7,15 @@
     const POSITION_KEY = 'lyf_home_live2d_position_v1';
     const VOICE_KEY = 'lyf_home_live2d_voice_v1';
     const MODEL_VISIBLE_KEY = 'lyf_home_live2d_visible_v1';
-    const state = { live2d: null, drag: null, touchReady: false, voiceAudio: null, voiceUrl: '' };
+    const state = {
+        live2d: null,
+        drag: null,
+        touchReady: false,
+        voiceAudio: null,
+        voiceUrl: '',
+        voiceRequestId: 0,
+        voiceAbortController: null,
+    };
 
     function clientId() {
         const saved = localStorage.getItem(CLIENT_KEY);
@@ -42,6 +50,8 @@
         const button = document.getElementById('home-ai-model');
         const visible = modelVisible();
         document.body.classList.toggle('home-live2d-off', !visible);
+        const modelStage = stage();
+        modelStage?.setAttribute('aria-hidden', visible ? 'false' : 'true');
         if (!button) return;
         button.classList.toggle('is-muted', !visible);
         button.setAttribute('aria-label', visible ? '隐藏 Live2D 模型' : '显示 Live2D 模型');
@@ -64,20 +74,42 @@
         speechSynthesis.speak(utterance);
     }
 
+    function stopVoice() {
+        state.voiceRequestId += 1;
+        state.voiceAbortController?.abort();
+        state.voiceAbortController = null;
+        state.voiceAudio?.pause();
+        state.voiceAudio?.removeAttribute('src');
+        state.voiceAudio?.load();
+        state.voiceAudio = null;
+        if (state.voiceUrl) URL.revokeObjectURL(state.voiceUrl);
+        state.voiceUrl = '';
+        if ('speechSynthesis' in window) speechSynthesis.cancel();
+    }
+
     async function speak(message) {
         if (!voiceEnabled()) return;
         const text = String(message).replace(/[*#`]/g, '').slice(0, 300);
+        const requestId = state.voiceRequestId + 1;
+        state.voiceRequestId = requestId;
+        state.voiceAbortController?.abort();
+        state.voiceAbortController = new AbortController();
+        state.voiceAudio?.pause();
+        state.voiceAudio = null;
+        if (state.voiceUrl) URL.revokeObjectURL(state.voiceUrl);
+        state.voiceUrl = '';
+        if ('speechSynthesis' in window) speechSynthesis.cancel();
         try {
-            state.voiceAudio?.pause();
-            if (state.voiceUrl) URL.revokeObjectURL(state.voiceUrl);
             const response = await fetch(`${API_ROOT}/blog/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text }),
-                signal: AbortSignal.timeout(26000),
+                signal: state.voiceAbortController.signal,
             });
             if (!response.ok) throw new Error(`TTS returned ${response.status}`);
-            const voiceUrl = URL.createObjectURL(await response.blob());
+            const blob = await response.blob();
+            if (requestId !== state.voiceRequestId || !voiceEnabled()) return;
+            const voiceUrl = URL.createObjectURL(blob);
             state.voiceUrl = voiceUrl;
             state.voiceAudio = new Audio(voiceUrl);
             state.voiceAudio.volume = .9;
@@ -87,8 +119,11 @@
             }, { once: true });
             await state.voiceAudio.play();
         } catch (error) {
+            if (requestId !== state.voiceRequestId || error?.name === 'AbortError') return;
             console.warn('Home Live2D voice unavailable, using browser voice', error);
             browserSpeak(text);
+        } finally {
+            if (requestId === state.voiceRequestId) state.voiceAbortController = null;
         }
     }
 
@@ -190,7 +225,7 @@
                     name: 'Mailili',
                     path: MODEL_PATH,
                     position: [45, 44],
-                    scale: .048,
+                    scale: .040,
                     stageStyle: { width: 320, height: 440, left: '12px', right: 'auto', bottom: '154px' },
                 }],
                 tips: {
@@ -289,8 +324,7 @@
             const enabled = !voiceEnabled();
             localStorage.setItem(VOICE_KEY, enabled ? 'on' : 'off');
             if (!enabled) {
-                state.voiceAudio?.pause();
-                if ('speechSynthesis' in window) speechSynthesis.cancel();
+                stopVoice();
             }
             updateVoiceButton();
             showBubble(enabled ? '语音打开啦，之后的回答我会念给你听。' : '语音已经安静下来啦。', enabled);

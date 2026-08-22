@@ -24,9 +24,14 @@
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(46, 1, .1, 220);
         camera.position.z = 42;
-        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+        const renderer = new THREE.WebGLRenderer({
+            canvas,
+            alpha: true,
+            antialias: window.innerWidth >= 720,
+            powerPreference: 'high-performance',
+        });
         renderer.setClearColor(0x000000, 0);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 720 ? 1 : 1.25));
 
         const constellation = new THREE.Group();
         scene.add(constellation);
@@ -641,7 +646,7 @@
 
         function draw(time) {
             requestAnimationFrame(draw);
-            const frameInterval = innerWidth < 720 ? 24 : 16;
+            const frameInterval = reducedMotion.matches ? 20 : innerWidth < 720 ? 12 : 8;
             if (document.hidden || body.classList.contains('knowledge-map-open') || time - lastFrame < frameInterval) return;
             lastFrame = time;
             context.clearRect(0, 0, width, height);

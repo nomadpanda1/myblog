@@ -188,7 +188,12 @@
 body.home-live2d-off #oml2d-stage,
 body.home-live2d-off .oml2d-stage,
 body.home-live2d-off #oml2d-tips,
-body.home-live2d-off .oml2d-tips { display: none !important; }
+body.home-live2d-off #oml2d-tips,
+body.home-live2d-off .oml2d-tips {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
 
 @media (max-width: 900px) {
     #oml2d-stage,
