@@ -15,6 +15,7 @@
         voiceUrl: '',
         voiceRequestId: 0,
         voiceAbortController: null,
+        dragFrame: 0,
     };
 
     function clientId() {
@@ -151,8 +152,10 @@
         const height = node.offsetHeight || 440;
         const requestedLeft = Number(position.left);
         const requestedBottom = Number(position.bottom);
-        const left = Math.round(Math.max(0, Math.min(Number.isFinite(requestedLeft) ? requestedLeft : 12, innerWidth - width)));
-        const bottom = Math.round(Math.max(0, Math.min(Number.isFinite(requestedBottom) ? requestedBottom : 154, innerHeight - height)));
+        const maxLeft = Math.max(0, innerWidth - width);
+        const maxBottom = Math.max(0, innerHeight - height);
+        const left = Math.round(Math.max(0, Math.min(Number.isFinite(requestedLeft) ? requestedLeft : 12, maxLeft)));
+        const bottom = Math.round(Math.max(0, Math.min(Number.isFinite(requestedBottom) ? requestedBottom : 154, maxBottom)));
         node.style.setProperty('left', `${left}px`, 'important');
         node.style.setProperty('right', 'auto', 'important');
         node.style.setProperty('bottom', `${bottom}px`, 'important');
@@ -174,8 +177,43 @@
         node.title = '拖动调整位置，单击打开 AI 助手';
         applyPosition();
 
+        const scheduleDragPosition = () => {
+            if (state.dragFrame) return;
+            state.dragFrame = requestAnimationFrame(() => {
+                state.dragFrame = 0;
+                if (!state.drag) return;
+                applyPosition({ left: state.drag.nextLeft, bottom: state.drag.nextBottom });
+            });
+        };
+        const move = event => {
+            if (!state.drag || state.drag.id !== event.pointerId) return;
+            const dx = event.clientX - state.drag.x;
+            const dy = event.clientY - state.drag.y;
+            if (!state.drag.moved && Math.hypot(dx, dy) < 7) return;
+            state.drag.moved = true;
+            state.drag.nextLeft = state.drag.left + dx;
+            state.drag.nextBottom = state.drag.bottom - dy;
+            event.preventDefault();
+            scheduleDragPosition();
+        };
+        const finish = event => {
+            if (!state.drag || state.drag.id !== event.pointerId) return;
+            const moved = state.drag.moved;
+            const finalPosition = { left: state.drag.nextLeft ?? state.drag.left, bottom: state.drag.nextBottom ?? state.drag.bottom };
+            state.drag = null;
+            if (state.dragFrame) cancelAnimationFrame(state.dragFrame);
+            state.dragFrame = 0;
+            if (node.hasPointerCapture?.(event.pointerId)) node.releasePointerCapture(event.pointerId);
+            if (moved) {
+                applyPosition(finalPosition, true);
+            } else {
+                openPanel();
+                showBubble('我在呀，主人。可以问我主页、文章、项目，或者让我给一个下一步建议。', true);
+            }
+        };
         node.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
+            event.preventDefault();
             const position = applyPosition() || { left: 12, bottom: 154 };
             state.drag = {
                 id: event.pointerId,
@@ -184,34 +222,16 @@
                 left: position.left,
                 bottom: position.bottom,
                 moved: false,
+                nextLeft: position.left,
+                nextBottom: position.bottom,
             };
             node.setPointerCapture?.(event.pointerId);
         });
-        node.addEventListener('pointermove', event => {
-            if (!state.drag || state.drag.id !== event.pointerId) return;
-            const dx = event.clientX - state.drag.x;
-            const dy = event.clientY - state.drag.y;
-            if (!state.drag.moved && Math.hypot(dx, dy) < 7) return;
-            state.drag.moved = true;
-            event.preventDefault();
-            applyPosition({ left: state.drag.left + dx, bottom: state.drag.bottom - dy });
-        });
-        const finish = event => {
-            if (!state.drag || state.drag.id !== event.pointerId) return;
-            const moved = state.drag.moved;
-            state.drag = null;
-            if (node.hasPointerCapture?.(event.pointerId)) node.releasePointerCapture(event.pointerId);
-            if (moved) {
-                applyPosition({ left: Number(node.dataset.homeLeft), bottom: Number(node.dataset.homeBottom) }, true);
-            } else {
-                openPanel();
-                showBubble('我在呀。可以问我主页、文章、项目，或者让我给一个下一步建议。', true);
-            }
-        };
-        node.addEventListener('pointerup', finish);
-        node.addEventListener('pointercancel', () => { state.drag = null; });
+        addEventListener('pointermove', move, { passive: false });
+        addEventListener('pointerup', finish);
+        addEventListener('pointercancel', finish);
         addEventListener('resize', () => applyPosition(readPosition(), true), { passive: true });
-        setTimeout(() => showBubble('欢迎回来。需要我结合网站资料给你一个建议吗？'), 900);
+        setTimeout(() => showBubble('欢迎回来，主人。需要我结合网站资料给你一个建议吗？'), 900);
     }
 
     function initLive2d() {
@@ -230,7 +250,7 @@
                 }],
                 tips: {
                     style: { width: '196px', minHeight: '52px', padding: '10px', fontSize: '12px', lineHeight: '1.5' },
-                    message: ['主页与各个项目的资料已经连接。', '可以拖动我，也可以点我打开 AI 助手。'],
+                    message: ['欢迎来到这里，主人。', '可以拖动我，也可以点我打开访客助手。'],
                 },
             });
             setTimeout(bindModel, 650);
