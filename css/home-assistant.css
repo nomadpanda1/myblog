@@ -169,7 +169,10 @@
     pointer-events: auto !important;
     user-select: none;
     filter: drop-shadow(0 16px 24px rgba(0, 0, 0, .22));
+    will-change: transform;
 }
+
+body.home-live2d-dragging #home-particles { opacity: .16 !important; }
 
 #oml2d-tips,
 .oml2d-tips {

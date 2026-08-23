@@ -16,7 +16,16 @@
         voiceRequestId: 0,
         voiceAbortController: null,
         dragFrame: 0,
+        touchCount: 0,
     };
+    const TOUCH_MESSAGES = [
+        '喵……摸到我啦。',
+        '耳朵动了一下，是在叫我吗？',
+        '嗯哼，我有好好待在这里陪你。',
+        '再轻一点嘛……不过，你开心就好。',
+        '检测到触摸，猫娘助手已上线。',
+        '我听见啦。主页里的项目，我都可以替七月的峰介绍。',
+    ];
 
     function clientId() {
         const saved = localStorage.getItem(CLIENT_KEY);
@@ -65,8 +74,8 @@
         speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN';
-        utterance.rate = 1.07;
-        utterance.pitch = 1.25;
+        utterance.rate = 1.04 + Math.random() * .08;
+        utterance.pitch = 1.18 + Math.random() * .12;
         const voices = speechSynthesis.getVoices();
         const preferred = ['Xiaoyi', 'Xiaoxiao', '晓伊', '晓晓', 'Yaoyao', '瑶瑶'];
         utterance.voice = voices.find(voice => /^zh/i.test(voice.lang) && preferred.some(name => voice.name.includes(name)))
@@ -101,10 +110,12 @@
         state.voiceUrl = '';
         if ('speechSynthesis' in window) speechSynthesis.cancel();
         try {
+            const voiceRate = 5 + Math.floor(Math.random() * 5);
+            const voicePitch = 9 + Math.floor(Math.random() * 7);
             const response = await fetch(`${API_ROOT}/blog/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text }),
+                body: JSON.stringify({ text, rate: voiceRate, pitch: voicePitch }),
                 signal: state.voiceAbortController.signal,
             });
             if (!response.ok) throw new Error(`TTS returned ${response.status}`);
@@ -182,7 +193,9 @@
             state.dragFrame = requestAnimationFrame(() => {
                 state.dragFrame = 0;
                 if (!state.drag) return;
-                applyPosition({ left: state.drag.nextLeft, bottom: state.drag.nextBottom });
+                const dx = state.drag.nextLeft - state.drag.left;
+                const dy = -(state.drag.nextBottom - state.drag.bottom);
+                node.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
             });
         };
         const move = event => {
@@ -191,6 +204,7 @@
             const dy = event.clientY - state.drag.y;
             if (!state.drag.moved && Math.hypot(dx, dy) < 7) return;
             state.drag.moved = true;
+            document.body.classList.add('home-live2d-dragging');
             state.drag.nextLeft = state.drag.left + dx;
             state.drag.nextBottom = state.drag.bottom - dy;
             event.preventDefault();
@@ -206,10 +220,14 @@
             if (node.hasPointerCapture?.(event.pointerId)) node.releasePointerCapture(event.pointerId);
             if (moved) {
                 applyPosition(finalPosition, true);
+                node.style.removeProperty('transform');
             } else {
                 openPanel();
-                showBubble('我在呀，主人。可以问我主页、文章、项目，或者让我给一个下一步建议。', true);
+                const message = TOUCH_MESSAGES[state.touchCount % TOUCH_MESSAGES.length];
+                state.touchCount += 1;
+                showBubble(message, true);
             }
+            document.body.classList.remove('home-live2d-dragging');
         };
         node.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
@@ -226,12 +244,13 @@
                 nextBottom: position.bottom,
             };
             node.setPointerCapture?.(event.pointerId);
+            document.body.classList.add('home-live2d-dragging');
         });
         addEventListener('pointermove', move, { passive: false });
         addEventListener('pointerup', finish);
         addEventListener('pointercancel', finish);
         addEventListener('resize', () => applyPosition(readPosition(), true), { passive: true });
-        setTimeout(() => showBubble('欢迎回来，主人。需要我结合网站资料给你一个建议吗？'), 900);
+        setTimeout(() => showBubble('欢迎回来。七月的峰是我的主人，需要我介绍一下这里的内容吗？'), 900);
     }
 
     function initLive2d() {
@@ -250,7 +269,7 @@
                 }],
                 tips: {
                     style: { width: '196px', minHeight: '52px', padding: '10px', fontSize: '12px', lineHeight: '1.5' },
-                    message: ['欢迎来到这里，主人。', '可以拖动我，也可以点我打开访客助手。'],
+                    message: ['欢迎来到这里。七月的峰是我的主人。', '可以拖动我，也可以点我打开访客助手。'],
                 },
             });
             setTimeout(bindModel, 650);

@@ -312,7 +312,7 @@
             requestAnimationFrame(animate);
             const delta = Math.min(.05, (time - lastTime) / 1000);
             lastTime = time;
-            if (document.hidden || body.classList.contains('knowledge-map-open')) return;
+            if (document.hidden || body.classList.contains('knowledge-map-open') || body.classList.contains('home-live2d-dragging')) return;
             if (!reducedMotion.matches) {
                 constellation.rotation.y += delta * (.018 + energy * .045);
                 constellation.rotation.z += delta * .004;
@@ -647,7 +647,7 @@
         function draw(time) {
             requestAnimationFrame(draw);
             const frameInterval = reducedMotion.matches ? 20 : innerWidth < 720 ? 12 : 8;
-            if (document.hidden || body.classList.contains('knowledge-map-open') || time - lastFrame < frameInterval) return;
+            if (document.hidden || body.classList.contains('knowledge-map-open') || body.classList.contains('home-live2d-dragging') || time - lastFrame < frameInterval) return;
             lastFrame = time;
             context.clearRect(0, 0, width, height);
             const pointerEnabled = precisePointer.matches;
