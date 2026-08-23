@@ -150,9 +150,13 @@
 
     function readPosition() {
         try {
-            return JSON.parse(localStorage.getItem(POSITION_KEY)) || { left: 12, bottom: 154 };
+            const saved = JSON.parse(localStorage.getItem(POSITION_KEY));
+            if (!saved) return { left: 12, bottom: 300 };
+            // 旧版本的默认坐标会让 OML2D 模型内容落到播放器下方。
+            if (Number(saved.left) === 12 && Number(saved.bottom) === 154) saved.bottom = 300;
+            return saved;
         } catch (error) {
-            return { left: 12, bottom: 154 };
+            return { left: 12, bottom: 300 };
         }
     }
 
@@ -232,7 +236,7 @@
         node.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
             event.preventDefault();
-            const position = applyPosition() || { left: 12, bottom: 154 };
+            const position = applyPosition() || { left: 12, bottom: 300 };
             state.drag = {
                 id: event.pointerId,
                 x: event.clientX,
@@ -256,23 +260,32 @@
     function initLive2d() {
         if (innerWidth <= 900 || typeof OML2D === 'undefined') return;
         try {
+            // OML2D 会把“休眠”状态写入全局 localStorage；主页自己的隐藏按钮使用独立键，
+            // 因此初始化时清掉旧状态，避免只剩右下角状态按钮而模型不再出现。
+            if (modelVisible()) localStorage.removeItem('OML2D_STATUS');
             state.live2d = OML2D.loadOml2d({
                 sayHello: false,
+                initialStatus: 'active',
                 menus: { disable: true },
                 statusBar: { disable: true },
                 models: [{
                     name: 'Mailili',
                     path: MODEL_PATH,
-                    position: [45, 44],
-                    scale: .040,
-                    stageStyle: { width: 320, height: 440, left: '12px', right: 'auto', bottom: '154px' },
+                    position: [30, 0],
+                    scale: .08,
+                    stageStyle: { width: 320, height: 440, left: '12px', right: 'auto', bottom: '300px' },
                 }],
                 tips: {
                     style: { width: '196px', minHeight: '52px', padding: '10px', fontSize: '12px', lineHeight: '1.5' },
                     message: ['欢迎来到这里。七月的峰是我的主人。', '可以拖动我，也可以点我打开访客助手。'],
                 },
             });
-            setTimeout(bindModel, 650);
+            const wakeLive2d = () => {
+                if (modelVisible()) state.live2d?.stageSlideIn?.();
+                bindModel();
+            };
+            state.live2d?.onLoad?.(wakeLive2d);
+            setTimeout(wakeLive2d, 5000);
         } catch (error) {
             document.body.classList.add('home-live2d-off');
             console.warn('Home Live2D unavailable', error);
