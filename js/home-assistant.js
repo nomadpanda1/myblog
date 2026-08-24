@@ -170,7 +170,7 @@
         const maxLeft = Math.max(0, innerWidth - width);
         const maxBottom = Math.max(0, innerHeight - height);
         const left = Math.round(Math.max(0, Math.min(Number.isFinite(requestedLeft) ? requestedLeft : 12, maxLeft)));
-        const bottom = Math.round(Math.max(0, Math.min(Number.isFinite(requestedBottom) ? requestedBottom : 154, maxBottom)));
+        const bottom = Math.round(Math.max(0, Math.min(Number.isFinite(requestedBottom) ? requestedBottom : 300, maxBottom)));
         node.style.setProperty('left', `${left}px`, 'important');
         node.style.setProperty('right', 'auto', 'important');
         node.style.setProperty('bottom', `${bottom}px`, 'important');
@@ -192,16 +192,6 @@
         node.title = '拖动调整位置，单击打开 AI 助手';
         applyPosition();
 
-        const scheduleDragPosition = () => {
-            if (state.dragFrame) return;
-            state.dragFrame = requestAnimationFrame(() => {
-                state.dragFrame = 0;
-                if (!state.drag) return;
-                const dx = state.drag.nextLeft - state.drag.left;
-                const dy = -(state.drag.nextBottom - state.drag.bottom);
-                node.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-            });
-        };
         const move = event => {
             if (!state.drag || state.drag.id !== event.pointerId) return;
             const dx = event.clientX - state.drag.x;
@@ -212,15 +202,14 @@
             state.drag.nextLeft = state.drag.left + dx;
             state.drag.nextBottom = state.drag.bottom - dy;
             event.preventDefault();
-            scheduleDragPosition();
+            // 直接写入合成层，避免再等待一轮 requestAnimationFrame 导致拖动滞后一帧。
+            node.style.transform = `translate3d(${dx}px, ${-dy}px, 0)`;
         };
         const finish = event => {
             if (!state.drag || state.drag.id !== event.pointerId) return;
             const moved = state.drag.moved;
             const finalPosition = { left: state.drag.nextLeft ?? state.drag.left, bottom: state.drag.nextBottom ?? state.drag.bottom };
             state.drag = null;
-            if (state.dragFrame) cancelAnimationFrame(state.dragFrame);
-            state.dragFrame = 0;
             if (node.hasPointerCapture?.(event.pointerId)) node.releasePointerCapture(event.pointerId);
             if (moved) {
                 applyPosition(finalPosition, true);
@@ -272,7 +261,7 @@
                     name: 'Mailili',
                     path: MODEL_PATH,
                     position: [30, 0],
-                    scale: .08,
+                    scale: .06,
                     stageStyle: { width: 320, height: 440, left: '12px', right: 'auto', bottom: '300px' },
                 }],
                 tips: {
