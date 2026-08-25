@@ -44,7 +44,8 @@
     }
 
     function modelVisible() {
-        return localStorage.getItem(MODEL_VISIBLE_KEY) !== 'off';
+        // 首次访问默认关闭；只有明确保存为 on 才显示模型。
+        return localStorage.getItem(MODEL_VISIBLE_KEY) === 'on';
     }
 
     function updateVoiceButton() {
@@ -57,16 +58,29 @@
     }
 
     function updateModelButton() {
-        const button = document.getElementById('home-ai-model');
         const visible = modelVisible();
         document.body.classList.toggle('home-live2d-off', !visible);
         const modelStage = stage();
         modelStage?.setAttribute('aria-hidden', visible ? 'false' : 'true');
-        if (!button) return;
-        button.classList.toggle('is-muted', !visible);
-        button.setAttribute('aria-label', visible ? '隐藏 Live2D 模型' : '显示 Live2D 模型');
-        button.title = visible ? '隐藏 Live2D' : '显示 Live2D';
-        button.innerHTML = `<i class="fa-solid ${visible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+        document.querySelectorAll('#home-ai-model, #home-live2d-toggle').forEach(button => {
+            button.classList.toggle('is-muted', !visible);
+            button.classList.toggle('is-active', visible);
+            button.setAttribute('aria-label', visible ? '隐藏 Live2D 模型' : '显示 Live2D 模型');
+            button.title = visible ? '隐藏 Live2D' : '显示 Live2D';
+            button.innerHTML = `<i class="fa-solid ${visible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+        });
+    }
+
+    function setModelVisible(visible) {
+        localStorage.setItem(MODEL_VISIBLE_KEY, visible ? 'on' : 'off');
+        if (visible) state.live2d?.stageSlideIn?.();
+        else state.live2d?.stageSlideOut?.();
+        updateModelButton();
+        const button = document.getElementById('home-live2d-toggle');
+        if (button) {
+            button.classList.remove('is-pulse');
+            requestAnimationFrame(() => button.classList.add('is-pulse'));
+        }
     }
 
     function browserSpeak(text) {
@@ -271,6 +285,7 @@
             });
             const wakeLive2d = () => {
                 if (modelVisible()) state.live2d?.stageSlideIn?.();
+                else state.live2d?.stageSlideOut?.();
                 bindModel();
             };
             state.live2d?.onLoad?.(wakeLive2d);
@@ -357,9 +372,8 @@
         if (!launcher || !panel || !form) return;
         launcher.addEventListener('click', () => panel.classList.contains('is-open') ? closePanel() : openPanel());
         document.getElementById('home-ai-close').addEventListener('click', closePanel);
-        document.getElementById('home-ai-model').addEventListener('click', () => {
-            localStorage.setItem(MODEL_VISIBLE_KEY, modelVisible() ? 'off' : 'on');
-            updateModelButton();
+        document.querySelectorAll('#home-ai-model, #home-live2d-toggle').forEach(button => {
+            button.addEventListener('click', () => setModelVisible(!modelVisible()));
         });
         document.getElementById('home-ai-voice').addEventListener('click', () => {
             const enabled = !voiceEnabled();

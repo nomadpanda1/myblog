@@ -21,6 +21,44 @@
     box-shadow: 0 0 34px rgba(99, 230, 190, .42), inset 0 0 0 4px rgba(255, 255, 255, .2);
 }
 
+.home-live2d-toggle {
+    position: fixed;
+    right: 70px;
+    bottom: 116px;
+    z-index: 40;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    color: #071312;
+    border: 1px solid rgba(151, 255, 235, .82);
+    border-radius: 50%;
+    background: rgba(143, 255, 236, .9);
+    box-shadow: 0 0 22px rgba(99, 230, 190, .32), inset 0 0 0 4px rgba(255, 255, 255, .16);
+    animation: home-live2d-breathe 2.4s ease-in-out infinite;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.home-live2d-toggle:hover,
+.home-live2d-toggle:focus-visible,
+.home-live2d-toggle.is-active {
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 0 34px rgba(99, 230, 190, .56), inset 0 0 0 4px rgba(255, 255, 255, .2);
+}
+
+.home-live2d-toggle.is-pulse { animation: home-live2d-pulse .46s ease-out; }
+
+@keyframes home-live2d-breathe {
+    0%, 100% { box-shadow: 0 0 18px rgba(99, 230, 190, .24), inset 0 0 0 4px rgba(255, 255, 255, .14); }
+    50% { box-shadow: 0 0 30px rgba(99, 230, 190, .5), inset 0 0 0 4px rgba(255, 255, 255, .2); }
+}
+
+@keyframes home-live2d-pulse {
+    0% { transform: scale(.88); }
+    60% { transform: scale(1.16); }
+    100% { transform: scale(1); }
+}
+
 .home-assistant-panel {
     position: fixed;
     right: 18px;
@@ -202,6 +240,7 @@ body.home-live2d-off .oml2d-tips {
     #oml2d-stage,
     .oml2d-stage { display: none !important; }
     .home-assistant-launcher { right: 12px; bottom: 86px; }
+    .home-live2d-toggle { display: none; }
     .home-assistant-panel { right: 12px; bottom: 138px; width: calc(100vw - 24px); max-height: calc(100vh - 160px); }
 }
 

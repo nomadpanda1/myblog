@@ -1,7 +1,7 @@
 /* 自定义配置 */
 /* 尚未完善 */
 if (window.jQuery) $(function () {
-    let url = "./setting.json?v=20260819-identity-1"
+    let url = "./setting.json?v=20260825-cad-1"
     $.getJSON(
         url,
         function (data) {
@@ -42,6 +42,9 @@ if (window.jQuery) $(function () {
             $('#link-url-6').attr('href', data.link_6[0]);
             $('#link-icon-6').attr('class', data.link_6[1]);
             $('#link-name-6').html(data.link_6[2]);
+            $('#link-url-7').attr('href', data.link_7[0]);
+            $('#link-icon-7').attr('class', data.link_7[1]);
+            $('#link-name-7').html(data.link_7[2]);
             //页脚版权
             $('#power-text').html(data.Copyright_text);
             $('#footer-note').html("·&nbsp;" + data.footer_note);
