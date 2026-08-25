@@ -15,7 +15,6 @@
         { name: '西西弗斯', description: 'sisyphus.lyf233.cn', url: 'https://sisyphus.lyf233.cn/', icon: 'fa-solid fa-mountain', keywords: 'sisyphus 西西弗斯 游戏' },
         { name: '顶驱 PHM', description: '状态监测、故障诊断与剩余寿命预测', url: 'https://www.phm.lyf233.cn/', icon: 'fa-solid fa-chart-line', keywords: 'phm 顶驱 预测性维护 状态监测 故障诊断 rul' },
         { name: 'CAD 图框置换', description: 'DWG / DXF 标准图框自动处理', url: 'https://www.frame.lyf233.cn/', icon: 'fa-solid fa-drafting-compass', keywords: 'cad dwg dxf 图框 置换 工程图纸' },
-        { name: 'CAD 工作台', description: 'cad.lyf233.cn · 新的 CAD 项目', url: 'https://cad.lyf233.cn/', icon: 'fa-solid fa-cubes-stacked', keywords: 'cad 工作台 三维 建模 工程设计' },
         { name: '当地天气', description: '打开天气详情与逐小时预报', url: '#weather', action: 'panel:weather', icon: 'fa-solid fa-cloud-sun', keywords: '天气 温度 降雨 空气质量 小时预报' },
         { name: '站点状态', description: '检查所有网站与后端服务', url: '#status', action: 'panel:status', icon: 'fa-solid fa-signal', keywords: '服务 状态 健康 延迟 uptime' },
         { name: '项目动态', description: '查看最近同步的 GitHub 提交', url: '#activity', action: 'panel:activity', icon: 'fa-solid fa-code-commit', keywords: 'github 提交 项目 动态 commit' },

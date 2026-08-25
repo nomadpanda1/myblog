@@ -6,7 +6,7 @@
     const CLIENT_KEY = 'lyf_home_ai_client_id';
     const POSITION_KEY = 'lyf_home_live2d_position_v1';
     const VOICE_KEY = 'lyf_home_live2d_voice_v1';
-    const MODEL_VISIBLE_KEY = 'lyf_home_live2d_visible_v1';
+    const MODEL_VISIBLE_KEY = 'lyf_home_live2d_visible_v2';
     const state = {
         live2d: null,
         drag: null,
@@ -60,6 +60,7 @@
     function updateModelButton() {
         const visible = modelVisible();
         document.body.classList.toggle('home-live2d-off', !visible);
+        document.body.classList.toggle('home-live2d-on', visible);
         const modelStage = stage();
         modelStage?.setAttribute('aria-hidden', visible ? 'false' : 'true');
         document.querySelectorAll('#home-ai-model, #home-live2d-toggle').forEach(button => {

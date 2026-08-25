@@ -212,6 +212,16 @@
 
 body.home-live2d-dragging #home-particles { opacity: .16 !important; }
 
+/* 模型脚本异步加载时也保持默认隐藏，避免首次访问闪现模型。 */
+body:not(.home-live2d-on) #oml2d-stage,
+body:not(.home-live2d-on) .oml2d-stage,
+body:not(.home-live2d-on) #oml2d-tips,
+body:not(.home-live2d-on) .oml2d-tips {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 #oml2d-tips,
 .oml2d-tips {
     box-sizing: border-box !important;
