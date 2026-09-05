@@ -585,7 +585,6 @@
         const context = canvas.getContext('2d', { alpha: true });
         const pointer = { x: -1000, y: -1000 };
         const ripples = [];
-        const sparks = [];
         let points = [];
         let orbitals = [];
         let width = 0;
@@ -595,24 +594,26 @@
         function resize() {
             width = innerWidth;
             height = innerHeight;
-            const ratio = Math.min(devicePixelRatio || 1, 1.15);
+            const ratio = Math.min(devicePixelRatio || 1, width < 720 ? 1 : 1.15);
             canvas.width = Math.round(width * ratio);
             canvas.height = Math.round(height * ratio);
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
             context.setTransform(ratio, 0, 0, ratio, 0, 0);
-            const target = Math.round(width * height / 18500);
+            const target = Math.round(width * height / 21000);
             const count = reducedMotion.matches
-                ? Math.min(58, Math.max(38, Math.round(target * .7)))
-                : Math.min(108, Math.max(54, target));
+                ? Math.min(52, Math.max(34, Math.round(target * .65)))
+                : Math.min(86, Math.max(42, target));
             points = Array.from({ length: count }, (_, index) => ({
                 x: Math.random() * width,
                 y: Math.random() * height,
                 vx: ((index * 17) % 11 - 5) * .014,
                 vy: ((index * 23) % 13 - 6) * .012,
+                offsetX: 0,
+                offsetY: 0,
                 r: 1.2 + (index % 4) * .42,
                 phase: Math.random() * Math.PI * 2,
-                shape: index % 5,
+                shape: index % 4,
                 warm: index % 6 === 0,
             }));
             orbitals = [
@@ -621,12 +622,11 @@
             ];
         }
 
-        function drawShape(point, x, y, size, time) {
-            const color = point.warm ? '255,202,121' : '142,220,255';
-            context.fillStyle = `rgba(${color},${.38 + Math.sin(time * .001 + point.phase) * .12})`;
+        function drawShape(point, x, y, size, alpha) {
+            context.fillStyle = point.warm ? `rgba(255,202,121,${alpha})` : `rgba(142,220,255,${alpha})`;
             if (point.shape === 0) {
                 context.fillRect(x - size * .5, y - size * .5, size, size);
-            } else if (point.shape === 1 || point.shape === 2) {
+            } else if (point.shape === 1) {
                 context.beginPath();
                 context.moveTo(x, y - size);
                 context.lineTo(x + size, y + size);
@@ -646,92 +646,92 @@
 
         function draw(time) {
             requestAnimationFrame(draw);
-            const frameInterval = reducedMotion.matches ? 20 : innerWidth < 720 ? 12 : 8;
+            const frameInterval = reducedMotion.matches ? 28 : width < 720 ? 20 : 16;
             if (document.hidden || body.classList.contains('knowledge-map-open') || body.classList.contains('home-live2d-dragging') || time - lastFrame < frameInterval) return;
             lastFrame = time;
             context.clearRect(0, 0, width, height);
-            const pointerEnabled = precisePointer.matches;
+            context.globalCompositeOperation = 'lighter';
+            const pointerEnabled = precisePointer.matches && pointer.x > -500;
+            const repelRadius = width < 720 ? 105 : 135;
+            const primary = weatherMode === 'rain' || weatherMode === 'storm' ? '132,206,255' : '144,255,236';
             points.forEach((point, index) => {
                 point.x = (point.x + point.vx + width) % width;
                 point.y = (point.y + point.vy + height) % height;
-                const waveX = Math.sin(time * .00022 + point.phase) * 7;
-                const waveY = Math.cos(time * .00018 + point.phase) * 5;
-                let x = point.x + waveX;
-                let y = point.y + waveY;
-                const dx = x - pointer.x;
-                const dy = y - pointer.y;
-                const distance = Math.hypot(dx, dy);
-                if (pointerEnabled && distance > 0 && distance < 120) {
-                    const force = (1 - distance / 120) * 10;
-                    x += dx / distance * force;
-                    y += dy / distance * force;
+                const baseX = point.x + Math.sin(time * .00022 + point.phase) * 5;
+                const baseY = point.y + Math.cos(time * .00018 + point.phase) * 4;
+                let desiredX = 0;
+                let desiredY = 0;
+                if (pointerEnabled) {
+                    const dx = baseX - pointer.x;
+                    const dy = baseY - pointer.y;
+                    const distance = Math.hypot(dx, dy);
+                    if (distance > 0 && distance < repelRadius) {
+                        const force = (1 - distance / repelRadius) ** 2 * (width < 720 ? 18 : 28);
+                        desiredX = dx / distance * force;
+                        desiredY = dy / distance * force;
+                    }
                 }
-                for (let sibling = index + 1; sibling < Math.min(points.length, index + 9); sibling += 1) {
-                    const other = points[sibling];
-                    const otherX = other.x + Math.sin(time * .00022 + other.phase) * 7;
-                    const otherY = other.y + Math.cos(time * .00018 + other.phase) * 5;
-                    const lineDistance = Math.hypot(x - otherX, y - otherY);
-                    if (lineDistance < 138) {
-                        context.strokeStyle = `rgba(87,189,205,${(1 - lineDistance / 138) * .24})`;
-                        context.lineWidth = .7;
+                point.offsetX += (desiredX - point.offsetX) * .16;
+                point.offsetY += (desiredY - point.offsetY) * .16;
+                const x = baseX + point.offsetX;
+                const y = baseY + point.offsetY;
+                drawShape(point, x, y, point.r, .42 + Math.sin(time * .001 + point.phase) * .1);
+                if (index % 3 === 0 && index + 2 < points.length) {
+                    const sibling = points[index + 2];
+                    const siblingX = sibling.x + Math.sin(time * .00022 + sibling.phase) * 5 + sibling.offsetX;
+                    const siblingY = sibling.y + Math.cos(time * .00018 + sibling.phase) * 4 + sibling.offsetY;
+                    const lineDistance = Math.hypot(x - siblingX, y - siblingY);
+                    if (lineDistance < 128) {
+                        context.strokeStyle = `rgba(${primary},${(1 - lineDistance / 128) * .2})`;
+                        context.lineWidth = .65;
                         context.beginPath();
                         context.moveTo(x, y);
-                        context.lineTo(otherX, otherY);
+                        context.lineTo(siblingX, siblingY);
                         context.stroke();
                     }
                 }
-                drawShape(point, x, y, point.r, time);
             });
             orbitals.forEach(orbit => {
-                orbit.angle += orbit.speed * .024;
+                orbit.angle += orbit.speed * .018;
                 context.save();
                 context.translate(orbit.x, orbit.y);
                 context.rotate(orbit.tilt);
-                context.strokeStyle = `rgba(${orbit.color},.2)`;
-                context.lineWidth = .8;
+                context.strokeStyle = `rgba(${orbit.color},.16)`;
+                context.lineWidth = .7;
                 context.beginPath();
                 context.ellipse(0, 0, orbit.rx, orbit.ry, 0, 0, Math.PI * 2);
                 context.stroke();
-                const ex = Math.cos(orbit.angle) * orbit.rx;
-                const ey = Math.sin(orbit.angle) * orbit.ry;
-                context.fillStyle = `rgba(${orbit.color},.78)`;
-                context.fillRect(ex - 2, ey - 2, 4, 4);
+                context.fillStyle = `rgba(${orbit.color},.65)`;
+                context.fillRect(Math.cos(orbit.angle) * orbit.rx - 1.5, Math.sin(orbit.angle) * orbit.ry - 1.5, 3, 3);
                 context.restore();
             });
-            ripples.forEach(ripple => {
-                ripple.radius += 3;
-                ripple.alpha *= .9;
+            for (let index = ripples.length - 1; index >= 0; index -= 1) {
+                const ripple = ripples[index];
+                ripple.radius += 2.8;
+                ripple.alpha *= .88;
                 context.strokeStyle = `rgba(171,235,255,${ripple.alpha})`;
-                context.strokeRect(ripple.x - ripple.radius, ripple.y - ripple.radius, ripple.radius * 2, ripple.radius * 2);
-            });
-            while (ripples.length && ripples[0].alpha < .02) ripples.shift();
-            sparks.forEach(spark => {
-                spark.life -= .05;
-                spark.x += spark.vx;
-                spark.y += spark.vy;
-                context.fillStyle = `rgba(255,202,121,${spark.life})`;
-                context.fillRect(spark.x, spark.y, 2, 2);
-            });
-            while (sparks.length && sparks[0].life <= 0) sparks.shift();
+                context.lineWidth = 1;
+                context.beginPath();
+                context.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
+                context.stroke();
+                if (ripple.alpha < .025) ripples.splice(index, 1);
+            }
+            context.globalCompositeOperation = 'source-over';
         }
 
         addEventListener('resize', resize, { passive: true });
         reducedMotion.addEventListener?.('change', resize);
         addEventListener('pointermove', event => {
-            if (precisePointer.matches && pointer.x > -500) {
-                const distance = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y);
-                const count = Math.min(2, Math.max(1, Math.round(distance / 38)));
-                for (let index = 0; index < count; index += 1) {
-                    sparks.push({ x: event.clientX, y: event.clientY, vx: (Math.random() - .5) * 1.2, vy: (Math.random() - .5) * 1.2, life: .65 });
-                }
-                if (sparks.length > 50) sparks.splice(0, sparks.length - 50);
-            }
             pointer.x = event.clientX;
             pointer.y = event.clientY;
         }, { passive: true });
+        addEventListener('pointerleave', () => {
+            pointer.x = -1000;
+            pointer.y = -1000;
+        }, { passive: true });
         addEventListener('pointerdown', event => {
-            ripples.push({ x: event.clientX, y: event.clientY, radius: 8, alpha: .62 });
-            if (ripples.length > 4) ripples.shift();
+            ripples.push({ x: event.clientX, y: event.clientY, radius: 5, alpha: .58 });
+            if (ripples.length > 2) ripples.shift();
         }, { passive: true });
         resize();
         draw(performance.now());
